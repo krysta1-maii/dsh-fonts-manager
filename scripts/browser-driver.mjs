@@ -73,6 +73,6 @@ export async function withBrowser(callback) {
     chrome.kill('SIGTERM'); const force = setTimeout(() => chrome.kill('SIGKILL'), 3000); await exited; clearTimeout(force);
     const canonical = await realpath(profile);
     if (!canonical.startsWith(resolve(tmpdir()) + '/dsh-font-test-')) throw new Error('Unexpected temporary profile path');
-    console.log('Clean temporary Chrome profile:', canonical); await rm(canonical, { recursive: true, force: true });
+    console.log('Clean temporary Chrome profile:', canonical); await rm(canonical, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
   }
 }

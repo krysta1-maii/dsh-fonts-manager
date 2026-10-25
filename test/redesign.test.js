@@ -1,7 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseSizeInput, validFamilyInput, mergeCatalog, fontStatus, stageFontEdit, stageFontReset, draftOperations } from '../src/client.js';
+import { parseSizeInput, validFamilyInput, mergeCatalog, groupCatalog, fontStatus, stageFontEdit, stageFontReset, draftOperations } from '../src/client.js';
 import { readTypography } from '../shared.js';
+
+test('suggested fonts are grouped with the role-appropriate category first', () => {
+  const catalog = mergeCatalog(['Unlisted Local Font']).filter(font => font.recommended);
+  const order = role => groupCatalog(catalog, role).map(group => group.category);
+  assert.deepEqual(order('text'), ['default', 'sans', 'serif', 'mono']);
+  assert.deepEqual(order('code'), ['default', 'mono', 'sans', 'serif']);
+  assert.deepEqual(order('terminal'), order('code'));
+  const groups = groupCatalog(catalog, 'code');
+  assert.equal(groups.reduce((sum, group) => sum + group.items.length, 0), catalog.length);
+  assert.ok(groups.find(group => group.category === 'mono').items.every(font => font.category === 'mono'));
+  assert.deepEqual(groupCatalog([], 'text'), []);
+});
 
 test('size input validation is independent of its editable text buffer', () => {
   for (const raw of ['', '1', '-', '1.2', 'NaN', '1e1', '23']) assert.equal(parseSizeInput('text', raw), null);

@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-fonts-manager",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "private": true,
   "type": "module",
   "description": "在插件详情页预览、对比并管理 DSH 正文、代码与终端字体。",
