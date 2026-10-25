@@ -16,7 +16,7 @@ const tokens = [
   "body{margin:0}.fixture-banner{font-size:11px;color:#727c8d;padding:10px 24px;border-bottom:1px solid #e1e5ec;background:#fff}#root{max-width:1240px;padding:28px 24px 36px;margin:auto}@media(max-width:700px){#root{padding:20px 16px 26px}}",
   "html.dark{--dsw-alias-bg-base:#22262e;--dsw-alias-bg-layer-1:#282d36;--dsw-alias-bg-layer-2:#303642;--dsw-alias-label-primary:#e4e7ef;--dsw-alias-label-secondary:#a0a9b7;--dsw-alias-label-primary-foreground:#172033;--dsw-alias-border-l1:#3b4350;--dsw-alias-border-l2:#515c6e;--dsw-alias-brand-primary:#a6b6ff;--dsw-alias-state-success-primary:#82c4ae;--dsw-alias-state-error-primary:#ee9292;--dsw-alias-state-warn-primary:#dfbb77;background:#181b22}html.dark .fixture-banner{background:#22262e;border-color:#3b4350;color:#a0a9b7}",
 ].join('\n');
-const html = '<!doctype html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+tokens+'</style></head><body><div class="fixture-banner">字体管理 1.2.0 · 正式 React 组件回归夹具 · 模拟设置服务，不连接 DSH</div><div id="root"></div><script>'+bundle.outputFiles[0].text.replaceAll('</script','<\/script')+'</script><script>'+artifact.replaceAll('</script','<\/script')+'</script></body></html>';
+const html = '<!doctype html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+tokens+'</style></head><body><div class="fixture-banner">字体管理 1.2.1 · 正式 React 组件回归夹具 · 模拟设置服务，不连接 DSH</div><div id="root"></div><script>'+bundle.outputFiles[0].text.replaceAll('</script','<\/script')+'</script><script>'+artifact.replaceAll('</script','<\/script')+'</script></body></html>';
 const fixturePath = join(out, 'regression.html'); await writeFile(fixturePath, html);
 const checks = [];
 await withBrowser(async b => {
@@ -88,6 +88,23 @@ await withBrowser(async b => {
   await b.viewport(1440,1050);await b.evaluate('window.scrollTo(0,0)');await b.shot(join(out,'production-component.png'));await b.click('.dfm-font-trigger');await b.shot(join(out,'production-picker.png'));await b.key('Escape');
   await b.evaluate('document.documentElement.classList.add("dark")');await b.shot(join(out,'production-dark.png'));await b.evaluate('document.documentElement.classList.remove("dark")');
   await b.viewport(390,844);await b.shot(join(out,'production-mobile.png'));
+  await b.evaluate('fixture.unmount()');await b.settle();
+  await b.evaluate(`(()=>{
+    const root=document.getElementById('root');
+    const host=document.createElement('div');
+    host.className='host-scroll-fixture';
+    host.style.cssText='box-sizing:border-box;height:100vh;overflow:auto;padding:0 40px;';
+    const before=document.createElement('div');before.style.height='1600px';
+    const after=document.createElement('div');after.style.height='1200px';
+    root.before(host);host.append(before,root,after);host.scrollTop=99999;
+  })()`);
+  assert.ok(await b.evaluate('document.querySelector(".host-scroll-fixture").scrollTop>0'));
+  await b.evaluate('fixture.patch({status:"loading"})');await b.settle();
+  await b.evaluate('fixture.mount()');await b.settle();
+  assert.equal(await b.evaluate('document.querySelector(".host-scroll-fixture").scrollTop'),0);
+  await b.evaluate('fixture.patch({status:"ready"})');await b.settle();
+  assert.equal(await b.evaluate('document.querySelector(".host-scroll-fixture").scrollTop'),0);
+  ok('host entry scroll resets to top before the loading placeholder expands');
   assert.equal(b.errors.length,0,JSON.stringify(b.errors));assert.equal(b.requests.filter(x=>/^https?:/.test(x)).length,0);ok('no browser errors or network/DSH requests; desktop/dark/mobile screenshots rendered');
   await writeFile(join(out,'verification.json'),JSON.stringify({checks,browserErrors:b.errors,networkRequests:b.requests,note:'Real React and actual generated plugin artifact. Mock settings service only; not an authenticated DSH page.'},null,2));
 });

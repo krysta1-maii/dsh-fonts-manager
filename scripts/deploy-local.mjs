@@ -19,7 +19,7 @@ for(const file of ['index.js','shared.js','cordis.patch.yml']){
   if(!a.equals(b))throw new Error('Host/config file differs: '+file);
   protectedFiles[file]=hash(b);
 }
-const backup=join(sourceRoot,'.release-backups','installed-before-1.2.0');await mkdir(backup,{recursive:true});
+const backup=join(sourceRoot,'.release-backups','installed-before-'+sourceManifest.version);await mkdir(backup,{recursive:true});
 const manifestPath=join(backup,'backup-manifest.json');
 const existing=await optional(manifestPath);let record=existing?JSON.parse(existing):{createdAt:new Date().toISOString(),targetRoot,version:targetManifest.version,files:{},protectedFiles};
 if(!existing){
@@ -37,7 +37,7 @@ for(const file of files){
   const source=await readFile(join(sourceRoot,file)),current=await optional(destination);
   if(current&&hash(current)===hash(source))continue;
   const currentHash=current?hash(current):null;
-  if(currentHash!==record.files[file]&&targetManifest.version!=='1.2.0')throw new Error('Installed file changed since backup: '+file);
+  if(currentHash!==record.files[file]&&targetManifest.version!==sourceManifest.version)throw new Error('Installed file changed since backup: '+file);
   if(current&&(await lstat(destination)).isSymbolicLink())throw new Error('Refuse symlink target');
   const temporary=destination+'.dfm-'+randomUUID()+'.tmp';
   if(dirname(temporary)!==dirname(destination))throw new Error('Invalid temporary destination');

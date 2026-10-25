@@ -97,7 +97,7 @@ export function fontStatus(family, localFamilies, localRead) {
 export function createPlugin(React, assets) {
   const h = React.createElement;
   const DshScene = createSceneRenderer(React);
-  const { useState, useMemo, useCallback, useSyncExternalStore, useRef, useEffect, useId } = React;
+  const { useState, useMemo, useCallback, useSyncExternalStore, useRef, useEffect, useLayoutEffect, useId } = React;
   // In-memory, scoped to this Client plugin and native form; no browser/profile persistence.
   const drafts = new WeakMap();
   const writes = new WeakMap();
@@ -162,6 +162,18 @@ export function createPlugin(React, assets) {
     const familyStart = useRef(null);
     const [sampleText, setSampleText] = useState('');
     const ids = useId();
+    const pageRef = useRef(null);
+    // The plugin manager reuses its scroll container across list and detail;
+    // reset it before the loading placeholder expands and scroll anchoring chases the bottom.
+    useLayoutEffect(() => {
+      for (let node = pageRef.current?.parentElement; node; node = node.parentElement) {
+        const overflowY = getComputedStyle(node).overflowY;
+        if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') {
+          node.scrollTop = 0;
+          break;
+        }
+      }
+    }, []);
     const values = edit?.values || accepted;
     const resets = edit?.resetRoles || [];
     const changes = pendingChanges(accepted, values, resets);
@@ -328,8 +340,8 @@ export function createPlugin(React, assets) {
         before.size !== after.size ? h('span', null, before.size, ' → ', h('b', { className: 'dfm-new' }, after.size + ' px')) : null,
         resets.includes(item) ? h('span', null, t(edit?.resetEdits?.[item] ? 'restorePartialTag' : 'restoreTag')) : null);
     });
-    if (!ready) return h('section', { className: 'dfm-page', 'aria-label': t('settingsTitle') }, h('style', null, assets.styles), h('p', { role: 'status' }, t(snapshot.status === 'loading' ? 'loading' : 'unavailable')));
-    return h('section', { className: 'dfm-page', 'data-font-manager': '1.2.0', 'aria-label': t('settingsTitle') },
+    if (!ready) return h('section', { ref: pageRef, className: 'dfm-page', 'aria-label': t('settingsTitle') }, h('style', null, assets.styles), h('p', { role: 'status' }, t(snapshot.status === 'loading' ? 'loading' : 'unavailable')));
+    return h('section', { ref: pageRef, className: 'dfm-page', 'data-font-manager': '1.2.1', 'aria-label': t('settingsTitle') },
       h('style', null, assets.styles),
       h('header', { className: 'dfm-header' }, h('div', { className: 'dfm-brand' }, h('span', { className: 'dfm-brand-icon', 'aria-hidden': true }, 'Aa'),
         h('div', null, h('h2', null, t('settingsTitle')), h('p', { className: 'dfm-intro' }, t('subtitle')))),
