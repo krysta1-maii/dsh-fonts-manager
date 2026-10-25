@@ -1,0 +1,94 @@
+import assert from 'node:assert/strict';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
+import { withBrowser } from './browser-driver.mjs';
+const root = resolve(import.meta.dirname, '..');
+const require = createRequire(join(root, '.ui-test', 'runtime.cjs'));
+let esbuild;
+try { esbuild = require('esbuild'); } catch { throw new Error('Install isolated test dependencies first: npm install --prefix .ui-test --no-save --package-lock=false --ignore-scripts react@19.2.0 react-dom@19.2.0 esbuild@0.25.11'); }
+const out = join(root, '.ui-test'); await mkdir(out, { recursive: true });
+const bundle = await esbuild.build({ entryPoints: [join(root, 'test/browser-entry.jsx')], bundle: true, write: false, platform: 'browser', format: 'iife', nodePaths: [join(out, 'node_modules')], define: { 'process.env.NODE_ENV': '"development"' } });
+const artifact = await readFile(join(root, 'client.js'), 'utf8');
+const tokens = [
+  ":root{--dsw-alias-bg-base:#fff;--dsw-alias-bg-layer-1:#f7f8fa;--dsw-alias-bg-layer-2:#f0f2f6;--dsw-alias-label-primary:#262a32;--dsw-alias-label-secondary:#737c8d;--dsw-alias-label-primary-foreground:#fff;--dsw-alias-border-l1:#e1e5ec;--dsw-alias-border-l2:#c8cfdb;--dsw-alias-brand-primary:#4b65e9;--dsw-alias-state-success-primary:#32816a;--dsw-alias-state-error-primary:#b44949;--dsw-alias-state-warn-primary:#9e741e;--dsw-alias-bg-mask-1:#15223b44;--dsw-alias-bg-mask-2:#15223b22;--dsh-font-family-text-default:'Noto Sans CJK SC',sans-serif;--dsh-font-family-code-default:'DejaVu Sans Mono',monospace;font-family:'Noto Sans CJK SC',sans-serif;background:#f6f7f9;color:#262a32;}",
+  "body{margin:0}.fixture-banner{font-size:11px;color:#727c8d;padding:10px 24px;border-bottom:1px solid #e1e5ec;background:#fff}#root{max-width:1240px;padding:28px 24px 36px;margin:auto}@media(max-width:700px){#root{padding:20px 16px 26px}}",
+  "html.dark{--dsw-alias-bg-base:#22262e;--dsw-alias-bg-layer-1:#282d36;--dsw-alias-bg-layer-2:#303642;--dsw-alias-label-primary:#e4e7ef;--dsw-alias-label-secondary:#a0a9b7;--dsw-alias-label-primary-foreground:#172033;--dsw-alias-border-l1:#3b4350;--dsw-alias-border-l2:#515c6e;--dsw-alias-brand-primary:#a6b6ff;--dsw-alias-state-success-primary:#82c4ae;--dsw-alias-state-error-primary:#ee9292;--dsw-alias-state-warn-primary:#dfbb77;background:#181b22}html.dark .fixture-banner{background:#22262e;border-color:#3b4350;color:#a0a9b7}",
+].join('\n');
+const html = '<!doctype html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+tokens+'</style></head><body><div class="fixture-banner">字体管理 1.2.0 · 正式 React 组件回归夹具 · 模拟设置服务，不连接 DSH</div><div id="root"></div><script>'+bundle.outputFiles[0].text.replaceAll('</script','<\/script')+'</script><script>'+artifact.replaceAll('</script','<\/script')+'</script></body></html>';
+const fixturePath = join(out, 'regression.html'); await writeFile(fixturePath, html);
+const checks = [];
+await withBrowser(async b => {
+  const ok = name => { checks.push(name); console.log('PASS', name); };
+  const text = selector => b.evaluate('document.querySelector('+JSON.stringify(selector)+').textContent');
+  async function button(container, label) { await b.evaluate('([...document.querySelectorAll('+JSON.stringify(container+' button')+')].find(x=>x.textContent.includes('+JSON.stringify(label)+'))).click()'); await b.settle(); }
+  async function role(index) { await b.click('.dfm-role:nth-child('+index+')'); }
+  await b.viewport(1440, 1050); await b.navigate(pathToFileURL(fixturePath).href);
+  assert.equal(await b.evaluate('window.fixtureReady'), true);
+  assert.equal(await b.evaluate('document.querySelectorAll(".dfm-specimen").length'), 2);
+  assert.equal(await b.evaluate('fixture.mutations().length'), 0);
+  assert.equal(await b.evaluate('document.querySelector(".dfm-actions .dfm-primary").disabled'), true);
+  ok('generated browser artifact loads with real React and no writes');
+  await b.text('.dfm-number-stepper input','16');await b.evaluate('fixture.external({fontSize:17})');await b.settle();
+  assert.equal(await b.evaluate('document.querySelector(".dfm-number-stepper input").value'),'17');
+  await b.evaluate('fixture.patch({revision:8,value:{...fixture.snapshot().value,fontSize:16}})');await b.settle();
+  ok('clean numeric editor follows external changes without stale input');
+  await b.text('.dfm-number-stepper input',''); assert.equal(await b.evaluate('document.querySelector(".dfm-number-stepper input").value'),'');
+  await b.call('Input.insertText',{text:'1'});await b.settle();assert.equal(await b.evaluate('document.querySelector(".dfm-number-stepper input").value'),'1');
+  assert.equal(await b.evaluate('document.querySelector(".dfm-actions .dfm-primary").disabled'),true);
+  await b.call('Input.insertText',{text:'8'});await b.settle();assert.match(await text('.dfm-specimen:not([data-reference]) .dfm-specimen-size'),/18/);
+  assert.match(await text('.dfm-specimen[data-reference] .dfm-specimen-size'),/16/);
+  ok('numeric input keeps intermediate states and previews valid sizes');
+  const previewTop=await b.evaluate('document.querySelector(".dfm-preview-area").getBoundingClientRect().top');
+  await b.click('.dfm-font-trigger');assert.equal(await b.evaluate('document.querySelector(".dfm-preview-area").getBoundingClientRect().top'),previewTop);
+  assert.match(await text('.dfm-font-popover'),/未验证|待验证/);
+  await b.key('Escape');assert.equal(await b.evaluate('!!document.querySelector(".dfm-font-popover")'),false);
+  assert.equal(await b.evaluate('document.activeElement.className'),'dfm-font-trigger');
+  ok('picker overlays without layout shift and Escape restores focus');
+  await b.click('.dfm-advanced-trigger');await b.text('dialog[open] input','Arial');await b.call('Input.insertText',{text:','});await b.settle();assert.equal(await b.evaluate('document.querySelector("dialog[open] input").value'),'Arial,');
+  await b.call('Input.insertText',{text:' Noto Sans CJK SC'});await button('dialog[open]','完成');
+  assert.match(await text('.dfm-selected-family'),/Arial, Noto Sans CJK SC/);
+  assert.equal(await b.evaluate('fixture.mutations().length'),0);
+  await b.click('.dfm-actions .dfm-primary');
+  const mutation=await b.evaluate('fixture.mutations()[0]');assert.equal(mutation.revision,8);
+  assert.deepEqual(mutation.ops,[{op:'set',path:['textFontFamily'],value:'"Arial", "Noto Sans CJK SC"'},{op:'set',path:['fontSize'],value:18}]);
+  assert.equal(await b.evaluate('fixture.snapshot().value.preference'),'light');assert.equal(await b.evaluate('fixture.snapshot().value.sentinel'),'preserve');
+  ok('advanced comma typing works; apply uses one revision-fenced font-only mutation');
+  await role(2);assert.match(await text('.dfm-scene-label'),/代码/);await b.click('.dfm-number-stepper button:last-child');
+  await b.evaluate('fixture.setMode("reject")');await b.click('.dfm-actions .dfm-primary');assert.match(await text('.dfm-error'),/草稿已保留/);assert.equal(await b.evaluate('document.querySelector(".dfm-actions .dfm-primary").disabled'),false);
+  await b.evaluate('fixture.setMode("accept")');await b.click('.dfm-actions .dfm-primary');
+  await role(3);assert.equal(await b.evaluate('document.querySelectorAll(".dfm-pv-terminal-screen").length'),2);await b.click('.dfm-number-stepper button:last-child');
+  await b.evaluate('fixture.setMode("throw")');await b.click('.dfm-actions .dfm-primary');assert.match(await text('.dfm-error'),/Fixture transport failure/);
+  ok('scene follows role; failed writes preserve editable drafts');
+  await b.evaluate('fixture.external({fontSize:15})');await b.settle();assert.equal(await b.evaluate('document.querySelector(".dfm-actions .dfm-primary").disabled'),true);
+  await button('.dfm-warning','重新载入');await button('dialog[open]','继续编辑');assert.equal(await b.evaluate('!!document.querySelector("dialog[open]")'),false);
+  await button('.dfm-warning','重新载入');await button('dialog[open]','放弃修改并重新载入');assert.equal(await b.evaluate('document.querySelector(".dfm-actions .dfm-primary").disabled'),true);
+  assert.match(await text('.dfm-pending-title'),/一致/);ok('conflict blocks writes and discard requires explicit confirmation');
+  await b.evaluate('fixture.setMode("accept")');await role(2);await b.click('.dfm-advanced-trigger');await button('dialog[open]','恢复当前用途');await b.click('.dfm-number-stepper button:last-child');await b.click('.dfm-actions .dfm-primary');
+  const reset=await b.evaluate('fixture.mutations().at(-1).ops');assert.deepEqual(reset,[{op:'unset',path:['codeFontFamily']},{op:'set',path:['codeFontSize'],value:12}]);ok('reset plus size adjustment retains family inheritance');
+  await b.click('.dfm-font-trigger');await button('.dfm-filters','本机');assert.match(await text('.dfm-empty'),/尚未读取/);
+  await b.evaluate('fixture.localFonts(["Cascadia Mono","Unclassified Local Font"])');await button('.dfm-picker-header','读取本机');assert.match(await text('.dfm-font-list'),/Unclassified Local Font/);assert.match(await text('.dfm-font-list'),/本机可用/);await b.key('Escape');ok('local authorization path retains unclassified local fonts');
+  await b.evaluate('fixture.patch({writable:false})');await b.settle();await b.click('.dfm-number-stepper button:last-child');assert.equal(await b.evaluate('document.querySelector(".dfm-actions .dfm-primary").disabled'),true);assert.match(await text('.dfm-warning'),/只读/);await b.evaluate('fixture.patch({writable:true})');await b.settle();
+  await b.evaluate('fixture.unmount();fixture.mount()');await b.settle();assert.match(await text('.dfm-pending-title'),/待应用/);ok('read-only connections preview safely and route remount retains staged edits');
+  await b.evaluate('fixture.setMode("defer")');await b.click('.dfm-actions .dfm-primary');await b.evaluate('fixture.unmount();fixture.mount()');await b.settle();assert.equal(await b.evaluate('document.querySelector(".dfm-actions .dfm-primary").disabled'),true);
+  await b.evaluate('fixture.release()');await b.settle();assert.match(await text('.dfm-pending-title'),/一致/);ok('in-flight save remains serialized across component remount');
+  await b.click('.dfm-advanced-trigger');await button('dialog[open]','恢复当前用途');
+  await b.evaluate('fixture.setMode("defer")');await b.click('.dfm-actions .dfm-primary');
+  await b.evaluate('fixture.unmount();fixture.mount()');await b.settle();await b.evaluate('fixture.release()');await b.settle();
+  assert.match(await text('.dfm-pending-title'),/一致/);assert.equal(await b.evaluate('!!document.querySelector(".dfm-warning")'),false);
+  ok('successful in-flight reset clears retained reset intents after remount');
+  await b.evaluate('fixture.setMode("accept");fixture.language("en")');await b.settle();assert.match(await text('.dfm-header'),/Font settings/);
+  for(const width of [1280,960,760,390,320]){
+    await b.viewport(width,900);await b.click('.dfm-font-trigger');
+    const geometry=await b.evaluate('(()=>{const r=document.querySelector(".dfm-font-popover").getBoundingClientRect();return {w:innerWidth,scroll:document.documentElement.scrollWidth,l:r.left,r:r.right}})()');
+    assert.equal(geometry.w,width);assert.ok(geometry.scroll<=width,'overflow at '+width);assert.ok(geometry.l>=0&&geometry.r<=width,'picker at '+width);await b.key('Escape');
+  }ok('English layout and font overlay fit 1280/960/760/390/320px');
+  await b.evaluate('fixture.language("zh");fixture.external({textFontFamily:"Noto Sans CJK SC",fontSize:16})');await b.settle();await role(1);await b.text('.dfm-number-stepper input','18');
+  await b.viewport(1440,1050);await b.evaluate('window.scrollTo(0,0)');await b.shot(join(out,'production-component.png'));await b.click('.dfm-font-trigger');await b.shot(join(out,'production-picker.png'));await b.key('Escape');
+  await b.evaluate('document.documentElement.classList.add("dark")');await b.shot(join(out,'production-dark.png'));await b.evaluate('document.documentElement.classList.remove("dark")');
+  await b.viewport(390,844);await b.shot(join(out,'production-mobile.png'));
+  assert.equal(b.errors.length,0,JSON.stringify(b.errors));assert.equal(b.requests.filter(x=>/^https?:/.test(x)).length,0);ok('no browser errors or network/DSH requests; desktop/dark/mobile screenshots rendered');
+  await writeFile(join(out,'verification.json'),JSON.stringify({checks,browserErrors:b.errors,networkRequests:b.requests,note:'Real React and actual generated plugin artifact. Mock settings service only; not an authenticated DSH page.'},null,2));
+});
+console.log('Browser regression passed:',checks.length,'checks');

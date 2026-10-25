@@ -1,0 +1,3 @@
+- insert:
+    - id: dsh-fonts-manager
+      name: '@local/dsh-fonts-manager'

@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>字体管理 · 独立重构预览</title><style>
+:root{color-scheme:light;--bg:#f5f6f8;--panel:#fff;--soft:#f8f9fb;--ink:#242832;--muted:#747b89;--line:#e5e8ef;--blue:#4b65e9;--blue-soft:#eef1ff;--green:#32816a;--shadow:0 18px 60px #202c4e19;--ui:"Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.55 var(--ui)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0}
+button:disabled{cursor:default;opacity:.45}
+button,input,textarea{outline:none}
+button:focus-visible,input:focus-visible,summary:focus-visible,textarea:focus-visible{outline:3px solid #9cabff;outline-offset:3px}
+svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;flex-shrink:0}
+[hidden]{display:none!important}
+.muted{color:var(--muted)}
+
+.prototype-strip{height:34px;padding:0 38px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--panel);color:var(--muted);font-size:10px;letter-spacing:.08em}
+.prototype-strip b{font-weight:600;color:#626b7b}
+.prototype-strip .dot{width:5px;height:5px;border-radius:50%;background:#8793ad;margin:0 8px;display:inline-block;vertical-align:middle}
+
+.app{max-width:1300px;margin:0 auto;padding:24px 38px 90px}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.brand{display:flex;gap:15px;align-items:center}
+.brand-icon{width:47px;height:47px;border:1px solid #dde2ef;background:var(--panel);border-radius:13px;display:flex;align-items:center;justify-content:center;color:#40578e;font-size:23px;font-family:Georgia,serif;letter-spacing:-2px;font-weight:600}
+.page-header h1{font-size:24px;font-weight:650;letter-spacing:-.6px;line-height:1.4;margin:0 0 4px}
+.page-header p{margin:0;color:var(--muted);font-size:12px}
+.header-right{display:flex;align-items:center;gap:12px}
+.prototype-label{padding:5px 10px;border:1px solid var(--line);background:var(--panel);border-radius:6px;color:var(--muted);font-size:11px}
+.icon-button{width:33px;height:33px;border:1px solid var(--line);border-radius:7px;background:var(--panel);display:inline-flex;align-items:center;justify-content:center}
+.icon-button:hover{background:var(--soft)}
+
+.roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.role{display:flex;align-items:center;gap:13px;text-align:left;padding:12px 17px;background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0;min-height:68px;transition:border-color .15s}
+.role:hover{border-color:#bdc6dc}
+.role[aria-pressed="true"]{border-color:#7b8fec;background:var(--blue-soft);box-shadow:0 0 0 1px #4b65e914}
+.role-symbol{height:34px;width:34px;border-radius:8px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:#6c7485}
+.role[aria-pressed="true"] .role-symbol{background:#e1e7ff;color:var(--blue)}
+.role-info{min-width:0;flex:1}
+.role-name{display:flex;align-items:center;gap:9px;font-weight:600;font-size:13px;margin-bottom:3px}
+.role-meta{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.role-meta b{font-weight:600;color:var(--blue)}
+.changed-dot{width:6px;height:6px;background:var(--blue);border-radius:50%;display:inline-block}
+.role-check{color:var(--blue);width:16px;height:16px;flex-shrink:0}
+
+.editor{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:14px 20px;margin-bottom:19px}
+.editor-row{display:flex;align-items:center;gap:27px}
+.font-control{width:370px;min-width:240px;flex:1}
+.field-label{display:flex;align-items:center;gap:9px;color:#666f7d;font-size:11px;font-weight:500;margin-bottom:7px}
+.tiny-pill{font-size:10px;font-weight:400;color:var(--muted);background:var(--soft);padding:1px 5px;border-radius:4px}
+.font-trigger{height:42px;width:100%;border:1px solid var(--line);border-radius:7px;background:var(--panel);display:flex;align-items:center;text-align:left;gap:12px;padding:0 12px}
+.font-trigger:hover{border-color:#9caadd}
+.font-trigger .sample-icon{font-size:19px;font-family:Georgia,serif;color:#69758c}
+.font-trigger strong{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.font-trigger svg{width:14px;color:var(--muted)}
+.editor-divider{align-self:stretch;border-left:1px solid var(--line)}
+.size-control{width:320px}
+.size-row{display:flex;align-items:center;gap:16px;height:42px}
+input[type=range]{accent-color:var(--blue);width:160px;min-width:70px;flex:1;height:4px;cursor:pointer}
+.number-stepper{display:flex;align-items:center;height:36px;border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:0 4px}
+.number-stepper button{background:none;width:25px;height:29px;color:var(--muted);font-size:18px;border-radius:4px}
+.number-stepper button:hover{background:var(--soft)}
+.number-stepper input{width:31px;text-align:center;background:transparent;border:0;font-weight:600}
+.number-stepper .unit{font-size:10px;color:var(--muted);padding-right:3px}
+.advanced-action{display:flex;align-items:center;gap:7px;align-self:flex-end;height:42px;background:none;color:var(--muted);font-size:12px;padding:0 3px;white-space:nowrap}
+.advanced-action:hover{color:var(--blue)}
+.advanced-action svg{width:15px}
+.validation{color:#af4f46;font-size:11px;margin-top:7px}
+
+.preview-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:13px}
+.preview-heading{display:flex;align-items:center;gap:10px}
+.preview-heading h2{font-size:14px;font-weight:600;margin:0}
+.preview-heading .context{color:var(--muted);font-size:11px;border-left:1px solid #d8dde6;padding-left:10px}
+.preview-actions{display:flex;align-items:center;gap:13px}
+.segmented{display:flex;background:#e9ecf2;padding:3px;border-radius:7px;gap:2px}
+.segmented button{border-radius:5px;padding:5px 12px;background:none;color:var(--muted);font-size:11px;white-space:nowrap}
+.segmented button[aria-pressed="true"]{color:var(--ink);background:var(--panel);box-shadow:0 1px 3px #202c4e10}
+.zoom-button{border:1px solid var(--line);border-radius:6px;background:var(--panel);height:30px;padding:0 9px;font-size:11px;color:#6b7587;display:flex;align-items:center;gap:5px}
+.zoom-button svg{width:13px}
+
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.preview-grid.single{grid-template-columns:1fr}
+.preview-card{min-width:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel);display:flex;flex-direction:column}
+.preview-card.draft{border-color:#c5cef3}
+.card-head{height:66px;display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-bottom:1px solid var(--line);background:#fcfcfd;gap:10px}
+.draft .card-head{background:#f4f6ff;border-bottom-color:#e3e7f7}
+.card-label{display:flex;align-items:center;gap:8px;font-weight:600;font-size:12px;margin-bottom:4px}
+.card-label .status{font-size:10px;padding:0 5px;border-radius:3px;border:1px solid #dbe1f5;color:var(--blue);font-weight:400}
+.card-meta{font-size:10px;color:var(--muted);display:flex;gap:7px}
+.size-tag{font-size:20px;font-weight:500;color:#8991a1;white-space:nowrap}
+.size-tag small{font-size:10px;margin-left:4px;font-weight:400}
+.draft .size-tag{color:var(--blue)}
+.scene-viewport{height:459px;overflow:auto;scrollbar-width:thin;scrollbar-color:#dbe0ea transparent}
+.scene{font-family:var(--text-family,"Noto Sans CJK SC",sans-serif);font-size:var(--text-size,16px);line-height:calc(var(--text-size,16px) + 10px);padding:16px 25px 8px;min-height:100%;display:flex;flex-direction:column}
+.scene-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font:10px/18px var(--ui);color:#858c99}
+.scene-top span{display:flex;align-items:center;gap:7px}
+.scene-top svg{width:12px;height:12px}
+.scene-example{font-size:9px;border:1px solid var(--line);border-radius:3px;padding:0 4px}
+.user-bubble{align-self:flex-end;margin:0 0 16px 20px;background:#f0f2f6;border-radius:13px 13px 3px 13px;padding:8px 12px;font-size:var(--text-size);line-height:calc(var(--text-size) + 8px);max-width:90%}
+.assistant{margin-bottom:10px}
+.assistant h3{font-size:calc(var(--text-size) + 4px);line-height:calc(var(--text-size) + 12px);font-weight:650;margin:0 0 9px;letter-spacing:-.3px}
+.assistant p{margin:0 0 10px}
+.assistant table{width:100%;border-collapse:collapse;font-size:calc(var(--text-size) - 2px);line-height:calc(var(--text-size) + 7px);margin:10px 0 10px}
+.assistant td,.assistant th{text-align:left;padding:6px 9px;border-bottom:1px solid var(--line);font-weight:400}
+.assistant th{font-size:calc(var(--text-size) - 3px);color:var(--muted)}
+.assistant td:first-child,.assistant th:first-child{padding-left:0;width:30%}
+.assistant code{font-family:var(--code-family,"DejaVu Sans Mono",monospace);font-size:.875em;background:#f0f2f6;padding:1px 5px;border-radius:4px}
+.scene-tools{display:flex;gap:15px;color:#9299a6;margin:1px 0 12px}
+.scene-tools svg{width:13px;height:13px}
+.composer{margin-top:auto;border:1px solid var(--line);border-radius:15px;padding:8px 12px;background:var(--soft)}
+.composer-text{font-size:var(--text-size);line-height:calc(var(--text-size) + 8px);color:#989faa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.composer-tools{display:flex;align-items:center;justify-content:space-between;font:10px/18px var(--ui);margin-top:7px;color:#697283}
+.composer-tools span{display:flex;align-items:center;gap:8px}
+.composer-tools svg{height:12px;width:12px}
+.fake-send{border-radius:50%;background:#dfe4ed;width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:#71809a}
+.preview-footnotes{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:12px;font-size:10px;color:var(--muted)}
+.preview-footnotes>span{display:flex;align-items:center;gap:5px}
+.preview-footnotes svg{height:12px;width:12px}
+.text-button{background:none;color:#6a768f;padding:0;font-size:11px;display:flex;align-items:center;gap:4px}
+.text-button:hover{color:var(--blue)}
+.text-button svg{height:12px;width:12px}
+.code-sample{font-family:var(--code-family);font-size:var(--code-size);line-height:calc(var(--code-size) + 8px);white-space:pre-wrap;background:var(--soft);padding:16px;border-radius:8px;border:1px solid var(--line);margin:3px 0 16px}
+.terminal-scene{padding:0}
+.terminal-head{padding:12px 17px;font:11px/20px var(--ui);display:flex;justify-content:space-between;border-bottom:1px solid var(--line);color:var(--muted)}
+.terminal-screen{font:var(--terminal-size)/1.65 var(--terminal-family);white-space:pre;padding:22px 20px;overflow:auto;flex:1;margin:0;color:var(--ink)}
+
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:10;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -6px 30px #23324e05}
+.bottom-inner{max-width:1300px;padding:17px 38px;min-height:85px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.change-summary{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.change-count{font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px}
+.change-count .count{background:var(--blue-soft);color:var(--blue);border-radius:4px;font:600 10px/19px var(--ui);padding:0 6px}
+.diff-chip{border:1px solid var(--line);padding:3px 9px;border-radius:5px;font-size:11px;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.diff-chip .old{color:var(--muted)}
+.diff-chip .new{font-weight:600;color:var(--blue)}
+.bottom-note{color:var(--muted);font-size:10px;margin-top:5px}
+.bottom-actions{display:flex;gap:10px;align-items:center}
+.button{border:1px solid var(--line);border-radius:7px;background:var(--panel);font-size:12px;padding:9px 17px;white-space:nowrap}
+.button:hover{background:var(--soft)}
+.primary{color:#fff;background:var(--blue);border-color:var(--blue);box-shadow:0 2px 3px #4b65e912;display:flex;align-items:center;gap:8px}
+.primary:hover{background:#3e56d3}
+.primary svg{height:14px;width:14px}
+
+.font-popover{position:absolute;left:20px;top:91px;width:465px;max-height:calc(100vh - 345px);min-height:300px;z-index:25;background:var(--panel);border:1px solid #d9deed;border-radius:12px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+.picker-header{display:flex;align-items:center;justify-content:space-between;padding:15px 17px 10px}
+.picker-header strong{font-size:13px;font-weight:600}
+.picker-local{display:flex;align-items:center;gap:5px;color:var(--blue);font-size:11px;background:none;padding:2px 0}
+.picker-local svg{width:13px;height:13px}
+.search-wrap{margin:0 14px 10px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:6px;padding:8px 10px;background:var(--soft)}
+.search-wrap svg{width:14px;height:14px;color:#8c95a4}
+.search-wrap input{width:100%;border:0;background:none;font-size:12px}
+.search-wrap:focus-within{border-color:#8c9de8;box-shadow:0 0 0 2px #4b65e912}
+.search-wrap input:focus-visible{outline:none}
+.picker-tabs{display:flex;gap:17px;border-bottom:1px solid var(--line);padding:0 17px}
+.picker-tabs button{font-size:11px;color:var(--muted);padding:4px 1px 9px;background:none;border-bottom:2px solid transparent}
+.picker-tabs button[aria-pressed=true]{border-bottom-color:var(--blue);color:var(--blue)}
+.font-options{padding:6px;overflow-y:auto;min-height:0;max-height:330px}
+.font-option{display:flex;align-items:center;gap:11px;width:100%;border-radius:6px;text-align:left;background:transparent;padding:10px 11px}
+.font-option:hover{background:var(--soft)}
+.font-option[aria-pressed=true]{background:var(--blue-soft)}
+.font-option .font-aa{font-size:25px;line-height:34px;min-width:58px;color:#596170;letter-spacing:-1px}
+.font-option .font-name{font-size:12px;font-weight:500;margin-bottom:2px;display:block}
+.font-option .font-description{font-size:10px;color:var(--muted);display:block}
+.font-option .font-check{color:var(--blue);margin-left:auto}
+.font-option svg{width:15px;height:15px}
+.picker-note{font-size:10px;color:var(--muted);padding:11px 15px;border-top:1px solid var(--line);background:var(--soft);margin:0}
+.empty-list{font-size:12px;color:var(--muted);text-align:center;padding:24px 20px;line-height:1.8}
+.notice-toast{position:fixed;bottom:105px;left:50%;transform:translateX(-50%);z-index:60;border:1px solid var(--line);background:var(--ink);color:var(--panel);padding:11px 18px;border-radius:8px;box-shadow:var(--shadow);font-size:12px;max-width:90vw}
+
+dialog{color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:13px;width:480px;max-width:calc(100vw - 30px);padding:24px;box-shadow:var(--shadow)}
+dialog::backdrop{background:#1c253e30;backdrop-filter:blur(2px)}
+.dialog-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.dialog-header h2{margin:0;font-size:16px}
+.dialog-field{display:flex;flex-direction:column;gap:8px;font-size:12px;margin:15px 0}
+.dialog-field textarea,.dialog-field input{width:100%;padding:10px;border:1px solid var(--line);border-radius:7px;background:var(--soft);font-size:12px;line-height:1.7}
+.dialog-help{font-size:11px;color:var(--muted);margin:8px 0}
+.dialog-actions{display:flex;align-items:center;justify-content:space-between;margin-top:22px;gap:15px}
+.restore-button{font-size:11px;background:none;color:var(--muted);padding:0}
+.glyph-preview{font-size:25px;line-height:2.1;padding:14px;background:var(--soft);border-radius:8px;white-space:pre-wrap}
+
+body.dark{color-scheme:dark;--bg:#181b22;--panel:#22262e;--soft:#282d36;--ink:#e4e7ef;--muted:#929bab;--line:#343b48;--blue:#99a9ff;--blue-soft:#2c3651;--green:#8cbfa9;--shadow:0 18px 60px #0005}
+body.dark .prototype-strip b{color:#abb5c7}
+body.dark .brand-icon{color:#aebcff;border-color:#414b61}
+body.dark .draft .card-head{border-bottom-color:#404e71}
+body.dark .scene-viewport{scrollbar-color:#4f596d transparent}
+body.dark .role-symbol{background:#303744;color:#aeb9ce}
+body.dark .role[aria-pressed=true] .role-symbol{background:#3c4865;color:#b5c3ff}
+body.dark .field-label{color:#a3adbc}
+body.dark .segmented{background:#303745}
+body.dark .card-head{background:#262b34}
+body.dark .draft .card-head{background:#2b344d}
+body.dark .user-bubble,body.dark .assistant code{background:#303642}
+body.dark .draft{border-color:#52618a}
+body.dark .font-trigger .sample-icon,body.dark .font-option .font-aa{color:#bac5da}
+body.dark .primary{background:#7289f5;border-color:#7289f5;color:#fff}
+
+@media(min-width:701px){.editor{position:sticky;top:12px;z-index:20}}
+@media(min-width:1500px){.app{padding-top:38px}
+.scene-viewport{height:480px}
+}
+
+@media(max-width:1000px){.app{padding:24px 24px 130px}
+.editor-row{gap:18px}
+.size-control{width:220px}
+.font-control{min-width:200px}
+.advanced-action{font-size:0}
+.advanced-action svg{width:20px}
+.scene{padding:18px}
+.bottom-inner{padding:17px 24px}
+.scene-viewport{height:480px}
+}
+
+@media(max-width:700px){.prototype-strip{padding:0 18px;letter-spacing:0}
+.prototype-strip>span:last-child{display:none}
+.app{padding:22px 16px 155px}
+.page-header{align-items:flex-start;margin-bottom:21px}
+.brand{gap:10px}
+.brand-icon{width:38px;height:38px;font-size:20px;border-radius:10px}
+.page-header h1{font-size:20px}
+.page-header p{font-size:11px;max-width:240px}
+.prototype-label{display:none}
+.header-right{margin-top:3px}
+.roles{gap:7px;margin-bottom:14px}
+.role{display:block;padding:11px 10px;min-height:79px}
+.role-symbol,.role-check{display:none}
+.role-name{font-size:12px;gap:4px;margin-bottom:5px}
+.role-meta{font-size:11px}
+.role-purpose{display:none}
+.editor{padding:15px;margin-bottom:23px}
+.editor-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:15px}
+.font-control{width:100%;min-width:0;grid-column:1 / -1}
+.size-control{width:100%;min-width:0}
+.editor-divider{display:none}
+.advanced-action{font-size:11px;align-self:end;height:40px}
+.advanced-action svg{width:15px}
+.font-popover{top:85px;left:9px;width:calc(100% - 18px);max-height:430px;min-height:260px}
+.font-options{max-height:240px}
+.preview-toolbar{flex-wrap:wrap;gap:11px}
+.preview-heading{width:100%}
+.preview-actions{width:100%;justify-content:space-between}
+.preview-grid{grid-template-columns:1fr;gap:14px}
+.scene-viewport{height:auto;max-height:570px}
+.card-head{padding:12px 16px;height:62px}
+.scene{padding:18px}
+.scene-tools{margin-bottom:15px}
+.composer{margin-top:7px}
+.preview-footnotes{align-items:flex-start;gap:10px;font-size:10px}
+.preview-footnotes>span{max-width:250px;align-items:flex-start}
+.bottom-inner{padding:12px 16px;display:block;min-height:126px}
+.change-summary{gap:8px}
+.bottom-note{margin-top:4px;font-size:9px}
+.bottom-actions{justify-content:space-between;margin-top:10px}
+.bottom-actions .button{padding:8px 16px;flex:1;justify-content:center}
+.notice-toast{bottom:145px}
+.diff-chip{padding:2px 7px;font-size:10px}
+.terminal-screen{font-size:12px}
+.preview-grid .current{order:1}
+.preview-grid .draft{order:0}
+}
+</style></head>
+<body>
+<div id="icons" aria-hidden="true"></div>
+<div class="prototype-strip"><span><b>DSH</b><i class="dot"></i>字体管理 / 设计预览 01</span><span>独立 HTML 原型 · 示例数据 · 不写入 DSH</span></div>
+<main class="app">
+<header class="page-header"><div class="brand"><div class="brand-icon" aria-hidden="true">Aa</div><div><h1>字体管理</h1><p>分别调整正文、代码与终端，确认效果后统一应用。</p></div></div><div class="header-right"><span class="prototype-label">独立原型 · 未连接 DSH</span><button class="icon-button" id="theme-toggle" aria-label="切换明暗主题" aria-pressed="false"><svg><use href="#i-moon"/></svg></button></div></header>
+<section class="roles" aria-label="选择编辑用途" id="roles"></section>
+<section class="editor" aria-label="字体与字号设置">
+<div class="editor-row"><div class="font-control"><div class="field-label"><span id="family-label">字体</span><span class="tiny-pill" id="availability">未验证本机可用性</span></div><button class="font-trigger" id="font-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="font-picker" aria-labelledby="family-label font-name"><span class="sample-icon" aria-hidden="true">Aa</span><strong id="font-name">Noto Sans CJK SC</strong><svg><use href="#i-chevron"/></svg></button></div><div class="editor-divider"></div><div class="size-control"><label class="field-label" for="size-number">字号 <span class="tiny-pill" id="size-range">10–22 px</span></label><div class="size-row"><input type="range" id="size-range-input" aria-label="调整字号" min="10" max="22" value="18"><div class="number-stepper"><button id="size-minus" aria-label="减小字号">−</button><input id="size-number" type="text" inputmode="numeric" value="18" aria-describedby="size-error"><span class="unit">px</span><button id="size-plus" aria-label="增大字号">+</button></div></div></div><button class="advanced-action" id="advanced-open"><svg><use href="#i-sliders"/></svg>高级选项</button></div>
+<div class="validation" id="size-error" role="status" hidden></div>
+<section class="font-popover" id="font-picker" role="dialog" aria-label="选择字体" hidden><div class="picker-header"><strong>选择字体</strong><button class="picker-local" id="read-local"><svg><use href="#i-monitor"/></svg>读取本机字体</button></div><label class="search-wrap"><svg aria-hidden="true"><use href="#i-search"/></svg><input id="font-search" type="search" placeholder="搜索字体名称…" aria-label="搜索字体名称"></label><div class="picker-tabs"><button data-filter="recommended" aria-pressed="true">推荐候选</button><button data-filter="local" aria-pressed="false">本机字体 <span id="local-count"></span></button></div><div class="font-options" id="font-options"></div><p class="picker-note" id="picker-note">候选名称不代表已安装。选择后在右侧预览，缺失字体会回退。</p></section>
+</section>
+<section aria-label="字体场景预览"><div class="preview-toolbar"><div class="preview-heading"><h2>效果预览</h2><span class="context" id="scene-label">对话与输入</span></div><div class="preview-actions"><div class="segmented" aria-label="预览模式"><button id="mode-compare" aria-pressed="true">当前 / 修改后</button><button id="mode-single" aria-pressed="false">仅看修改后</button></div><button class="zoom-button" id="zoom-toggle" aria-pressed="false"><svg><use href="#i-search"/></svg><span id="zoom-label">100% 实际字号</span></button></div></div><div class="preview-grid" id="preview-grid"></div><div class="preview-footnotes"><span><svg><use href="#i-eye"/></svg><span id="scene-note">只读示例 · 不发送消息、不运行命令</span></span><button class="text-button" id="sample-open">预览内容与字形 <svg><use href="#i-arrow"/></svg></button></div></section>
+</main>
+<footer class="bottom-bar"><div class="bottom-inner"><div><div class="change-summary" id="change-summary" aria-live="polite"></div><div class="bottom-note">演示模式：应用仅更新本页示例，不会修改已安装插件或 DSH 字体。</div></div><div class="bottom-actions"><button class="button" id="discard">撤销全部</button><button class="button primary" id="apply">应用更改 <svg><use href="#i-arrow"/></svg></button></div></div></footer>
+<dialog id="advanced-dialog"><div class="dialog-header"><h2>高级字体选项</h2><button class="icon-button" data-close="advanced-dialog" aria-label="关闭高级选项"><svg><use href="#i-close"/></svg></button></div><label class="dialog-field">字体与回退顺序<input id="family-stack" type="text" maxlength="2048" placeholder="Noto Sans CJK SC, Arial, sans-serif"></label><p class="dialog-help">使用英文逗号分隔。输入过程会保留，完成后再更新预览；留空使用系统默认字体。</p><p class="dialog-help">在正式插件中，“恢复继承值”将移除当前用途的覆盖配置。本原型只恢复示例默认值。</p><div class="dialog-actions"><button class="restore-button" id="restore">恢复当前用途的示例默认值</button><button class="button primary" id="advanced-done">完成</button></div></dialog>
+<dialog id="sample-dialog"><div class="dialog-header"><h2>预览内容与字形</h2><button class="icon-button" data-close="sample-dialog" aria-label="关闭预览内容"><svg><use href="#i-close"/></svg></button></div><label class="dialog-field">自定义当前场景内容<textarea id="sample-input" rows="4" maxlength="4000" placeholder="输入你想比较的一段文字…"></textarea></label><p class="dialog-help">仅在本页预览。两侧使用相同内容，清空恢复示例。</p><div class="glyph-preview" id="glyph-preview">0 O o   1 l I |   2 Z   5 S
+中文 Aa 0123456789</div><div class="dialog-actions"><button class="restore-button" id="reset-sample">恢复示例文字</button><button class="button primary" id="sample-done">完成</button></div></dialog>
+<div class="notice-toast" id="toast" role="status" hidden></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), icon=name=>'<svg aria-hidden="true"><use href="#i-'+name+'"/></svg>';
+const paths={chevron:'m7 10 5 5 5-5',check:'m5 12 4 4L19 6',code:'m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 20',terminal:'m4 6 6 6-6 6m10 0h6',sliders:'M4 7h6m4 0h6M4 17h10m4 0h2 M10 5h4v4h-4z M14 15h4v4h-4z',moon:'M20 14.1A8.5 8.5 0 0 1 9.9 4a8.5 8.5 0 1 0 10.2 10.1Z',arrow:'M5 12h14m-5-5 5 5-5 5',copy:'M9 8h11v13H9zM5 16H3V3h11v2',retry:'M4 10a8 8 0 1 1 1 8M4 4v6h6',more:'M4 12h1m6 0h1m6 0h1',plus:'M12 5v14M5 12h14',send:'M12 19V5m-6 6 6-6 6 6',search:'M16 10a6 6 0 1 1-12 0 6 6 0 0 1 12 0Zm-1 5 5 5',monitor:'M3 4h18v13H3zM12 17v4m-4 0h8',eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12m12 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z',close:'m6 6 12 12M6 18 18 6',folder:'M3 6h6l2 2h10v11H3z'};
+$('icons').innerHTML='<svg style="position:absolute;width:0;height:0;overflow:hidden"><defs>'+Object.entries(paths).map(([k,d])=>'<symbol id="i-'+k+'" viewBox="0 0 24 24"><path d="'+d+'"/></symbol>').join('')+'</defs></svg>';
+const roles={text:{name:'正文与界面',short:'正文',scene:'对话与输入',min:10,max:22},code:{name:'代码',short:'代码',scene:'代码与工具',min:10,max:16},terminal:{name:'终端',short:'终端',scene:'终端面板',min:10,max:20}};
+const initial={text:{family:'Noto Sans CJK SC',size:16},code:{family:'DejaVu Sans Mono',size:12},terminal:{family:'DejaVu Sans Mono',size:13}};
+let accepted=structuredClone(initial),draft=structuredClone(initial);draft.text.size=18;
+let role='text',compare=true,zoom=false,filter='recommended',localNames=null,toastTimer;
+const samples={text:'',code:'',terminal:''};
+const catalog=[{family:'',description:'系统默认 · 跟随浏览器',sample:'Aa 字'},{family:'Noto Sans CJK SC',description:'无衬线 · 中英混排',sample:'Aa 字'},{family:'Noto Serif CJK SC',description:'衬线 · 长文阅读',sample:'Aa 字'},{family:'Microsoft YaHei',description:'无衬线 · 中文界面',sample:'Aa 字'},{family:'DejaVu Sans Mono',description:'等宽 · 代码与终端',sample:'0O 1l'},{family:'Cascadia Mono',description:'等宽 · 代码与终端',sample:'0O 1l'},{family:'Consolas',description:'等宽 · 代码与终端',sample:'0O 1l'},{family:'Georgia',description:'衬线 · 西文阅读',sample:'Aa 01'}];
+const display=family=>family||'系统默认字体';
+const esc=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const familyCSS=family=>family.split(',').map(x=>x.replace(/["'\\<>\u0000-\u001f]/g,'').trim()).filter(Boolean).map(x=>/^(serif|sans-serif|monospace|system-ui|ui-monospace)$/i.test(x)?x:JSON.stringify(x)).join(', ');
+const changed=()=>Object.keys(roles).filter(r=>draft[r].size!==accepted[r].size||familyCSS(draft[r].family)!==familyCSS(accepted[r].family));
+function available(f){if(!f||/^(system-ui|monospace|sans-serif|serif)$/.test(f))return '系统字体';if(localNames===null)return '未验证本机可用性';return localNames.some(x=>x.toLowerCase()===f.toLowerCase())?'本机已确认':'未确认 · 可能回退';}
+function toast(text){$('toast').textContent=text;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,4200);}
+function renderRoles(){const dirty=changed();$('roles').innerHTML=Object.entries(roles).map(([key,r])=>{const old=accepted[key],v=draft[key];const size=old.size!==v.size?old.size+' → <b>'+v.size+' px</b>':v.size+' px';return '<button type="button" class="role" data-role="'+key+'" aria-pressed="'+(role===key)+'"><span class="role-symbol" aria-hidden="true">'+(key==='text'?'Tt':icon(key==='code'?'code':'terminal'))+'</span><span class="role-info"><span class="role-name">'+r.name+(dirty.includes(key)?'<i class="changed-dot" title="有待应用修改"></i>':'')+'</span><span class="role-meta"><span class="role-purpose">'+(key==='text'?'中文与界面':key==='code'?'代码块与工具输出':'命令与终端输出')+' · </span>'+size+'</span></span>'+(role===key?'<svg class="role-check" aria-hidden="true"><use href="#i-check"/></svg>':'')+'</button>';}).join('');}
+function renderControls(){const s=roles[role],v=draft[role];$('font-name').textContent=display(v.family);$('availability').textContent=available(v.family);$('size-range').textContent=s.min+'–'+s.max+' px';$('size-range-input').min=s.min;$('size-range-input').max=s.max;$('size-range-input').value=v.size;$('size-range-input').setAttribute('aria-valuetext',v.size+' px');$('size-number').value=v.size;$('size-minus').disabled=v.size<=s.min;$('size-plus').disabled=v.size>=s.max;$('size-error').hidden=true;$('size-number').removeAttribute('aria-invalid');$('scene-label').textContent=s.scene;$('scene-note').textContent=role==='terminal'?'终端为近似预览，实际格宽与行高需在 DSH 中确认':'只读示例 · 不发送消息、不运行命令';}
+function sceneHTML(){if(role==='terminal')return '<div class="scene terminal-scene"><div class="terminal-head"><span>'+icon('terminal')+' bash</span><span>~/font-demo</span></div><pre class="terminal-screen">'+esc(samples.terminal||'andy@dsh:~/font-demo$ pnpm run check\n\n> font-demo@1.0.0 check\n> tsc --noEmit\n\n✓ Type check passed\n✓ 中文路径与英文输出正常\n\nFiles    12    Errors    0\nTime     0.42s\n\nandy@dsh:~/font-demo$ ▌')+'</pre></div>';
+const top='<div class="scene-top"><span>'+icon('folder')+' 项目排版检查</span><span class="scene-example">示例会话</span></div>';
+const bubble='<div class="user-bubble">'+(role==='text'?'整理这次修改，给我一份检查清单。':'检查这段字体配置，并说明检查结果。')+'</div>';
+const prose=role==='text'?'<h3>修改说明</h3><p>'+esc(samples.text||'本次更新保留了原有功能，并优化了信息层级。请关注长段落中的字形、行距，以及中文与 English 混排时的阅读体验。')+'</p><table><thead><tr><th>显示位置</th><th>检查重点</th></tr></thead><tbody><tr><td>正文消息</td><td>中文、数字与标点的阅读效果</td></tr><tr><td>行内代码</td><td><code>const value = 100</code></td></tr></tbody></table>':'<h3>字体配置检查</h3><pre class="code-sample">'+esc(samples.code||'// 三类字体独立设置\nconst typography = {\n  text: { size: 18 },\n  code: { size: 12 },\n  terminal: { size: 13 },\n};\n\n// 0 O o · 1 l I | · {} [] ()')+'</pre><p>类型检查已完成，未发现错误。</p>';
+return '<div class="scene">'+top+bubble+'<article class="assistant">'+prose+'</article><div class="scene-tools" aria-hidden="true">'+icon('copy')+icon('retry')+icon('more')+'</div><div class="composer" aria-label="只读输入区示例"><div class="composer-text">继续提问，或用 @ 引用文件…</div><div class="composer-tools"><span>'+icon('plus')+' DeepSeek '+icon('chevron')+'</span><i class="fake-send" aria-hidden="true">'+icon('send')+'</i></div></div></div>';}
+function renderPreview(){const columns=compare?[['current',accepted],['draft',draft]]:[['draft',draft]];$('preview-grid').classList.toggle('single',!compare);$('preview-grid').innerHTML=columns.map(([kind,values])=>'<section class="preview-card '+kind+'" aria-label="'+(kind==='draft'?'修改后预览':'当前已应用示例')+'"><div class="card-head"><div><div class="card-label">'+(kind==='draft'?'修改后 <span class="status">'+(changed().length?'待应用':'与当前一致')+'</span>':'当前已应用')+'</div><div class="card-meta"><span>'+esc(display(values[role].family))+'</span><span>·</span><span>'+roles[role].short+'</span></div></div><div class="size-tag">'+values[role].size+'<small>px</small></div></div><div class="scene-viewport">'+sceneHTML()+'</div></section>').join('');
+columns.forEach(([kind,values])=>{const scene=document.querySelector('.'+kind+' .scene');for(const r of Object.keys(roles)){scene.style.setProperty('--'+r+'-family',(familyCSS(values[r].family)||(r==='text'?'system-ui':'monospace'))+', '+(r==='text'?'sans-serif':'monospace'));scene.style.setProperty('--'+r+'-size',values[r].size+'px');}scene.style.zoom=zoom?1.5:1;});$('mode-compare').setAttribute('aria-pressed',compare);$('mode-single').setAttribute('aria-pressed',!compare);$('zoom-label').textContent=zoom?'150% 放大预览':'100% 实际字号';$('zoom-toggle').setAttribute('aria-pressed',zoom);}
+function renderSummary(){const dirty=changed();$('change-summary').innerHTML='<span class="change-count">'+(dirty.length?'待应用 <span class="count">'+dirty.length+' 项</span>':'与当前示例设置一致')+'</span>'+dirty.map(r=>{const old=accepted[r],v=draft[r];const text=old.family!==v.family?'<span class="old">'+esc(display(old.family))+'</span><span>→</span><span class="new">'+esc(display(v.family))+'</span>':'';const size=old.size!==v.size?'<span class="old">'+old.size+'</span><span>→</span><span class="new">'+v.size+' px</span>':'';return '<span class="diff-chip"><span>'+roles[r].short+'</span>'+text+(text&&size?' · ':'')+size+'</span>';}).join('');$('apply').disabled=!dirty.length;$('discard').disabled=!dirty.length;}
+function render(){renderRoles();renderControls();renderPreview();renderSummary();if(!$('font-picker').hidden)renderFonts();}
+function renderFonts(){const query=$('font-search').value.trim().toLowerCase();let rows=filter==='local'?(localNames||[]).map(f=>({family:f,description:'本机字体 · 未分类',sample:'Aa 字'})):catalog;rows=rows.filter(f=>display(f.family).toLowerCase().includes(query));$('font-options').innerHTML=rows.length?rows.slice(0,100).map(f=>'<button type="button" class="font-option" data-family="'+esc(f.family)+'" aria-pressed="'+(familyCSS(f.family)===familyCSS(draft[role].family))+'"><span class="font-aa" aria-hidden="true">'+f.sample+'</span><span><span class="font-name">'+esc(display(f.family))+'</span><span class="font-description">'+f.description+' · '+(localNames?.includes(f.family)?'本机已确认':f.family?'待验证':'内置回退')+'</span></span>'+(familyCSS(f.family)===familyCSS(draft[role].family)?'<span class="font-check">'+icon('check')+'</span>':'')+'</button>').join(''):'<div class="empty-list">'+(filter==='local'&&localNames===null?'尚未读取本机字体<br>点击右上角“读取本机字体”，授权后查看。':'没有匹配的字体<br>可以在高级选项中手动输入。')+'</div>';document.querySelectorAll('.font-option').forEach(el=>el.querySelector('.font-aa').style.fontFamily=(familyCSS(el.dataset.family)||'system-ui')+', sans-serif');document.querySelectorAll('[data-filter]').forEach(el=>el.setAttribute('aria-pressed',el.dataset.filter===filter));$('local-count').textContent=localNames?'('+localNames.length+')':'';}
+function togglePicker(open){$('font-picker').hidden=!open;$('font-trigger').setAttribute('aria-expanded',open);if(open){renderFonts();$('font-search').focus();}else $('font-trigger').focus();}
+function setSize(value){const s=roles[role];if(!Number.isInteger(value)||value<s.min||value>s.max)return false;draft[role].size=value;render();return true;}
+function validateSize(){const raw=$('size-number').value.trim();if(!raw||!setSize(Number(raw))){$('size-error').textContent='请输入 '+roles[role].min+'–'+roles[role].max+' 之间的整数。';$('size-error').hidden=false;$('size-number').setAttribute('aria-invalid','true');return false;}return true;}
+$('roles').addEventListener('click',e=>{const button=e.target.closest('[data-role]');if(!button)return;role=button.dataset.role;$('font-picker').hidden=true;$('font-trigger').setAttribute('aria-expanded','false');render();});
+$('font-trigger').onclick=()=>togglePicker($('font-picker').hidden);$('font-search').oninput=renderFonts;document.querySelectorAll('[data-filter]').forEach(el=>el.onclick=()=>{filter=el.dataset.filter;renderFonts();});$('font-options').onclick=e=>{const option=e.target.closest('[data-family]');if(!option)return;draft[role].family=option.dataset.family;render();};
+document.addEventListener('pointerdown',e=>{if(!$('font-picker').hidden&&!$('font-picker').contains(e.target)&&!$('font-trigger').contains(e.target)){$('font-picker').hidden=true;$('font-trigger').setAttribute('aria-expanded','false');}});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('font-picker').hidden){e.preventDefault();togglePicker(false);}});
+$('size-range-input').oninput=e=>setSize(Number(e.target.value));$('size-minus').onclick=()=>setSize(draft[role].size-1);$('size-plus').onclick=()=>setSize(draft[role].size+1);$('size-number').oninput=()=>{$('size-error').hidden=true;$('size-number').removeAttribute('aria-invalid');};$('size-number').onblur=validateSize;$('size-number').onkeydown=e=>{if(e.key==='Enter')validateSize();if(e.key==='Escape'){renderControls();$('size-number').blur();}};
+$('mode-compare').onclick=()=>{compare=true;renderPreview();};$('mode-single').onclick=()=>{compare=false;renderPreview();};$('zoom-toggle').onclick=()=>{zoom=!zoom;renderPreview();};$('theme-toggle').onclick=()=>{document.body.classList.toggle('dark');$('theme-toggle').setAttribute('aria-pressed',document.body.classList.contains('dark'));};
+$('advanced-open').onclick=()=>{$('family-stack').value=draft[role].family;$('advanced-dialog').showModal();};$('advanced-done').onclick=()=>{draft[role].family=$('family-stack').value;$('advanced-dialog').close();render();};$('restore').onclick=()=>{draft[role]=structuredClone(initial[role]);$('advanced-dialog').close();render();toast('已恢复当前用途的示例默认值，应用后才生效。');};
+$('sample-open').onclick=()=>{$('sample-input').value=samples[role];$('glyph-preview').style.fontFamily=familyCSS(draft[role].family);$('sample-dialog').showModal();};$('sample-done').onclick=()=>{samples[role]=$('sample-input').value;$('sample-dialog').close();renderPreview();};$('reset-sample').onclick=()=>{$('sample-input').value='';};document.querySelectorAll('[data-close]').forEach(el=>el.onclick=()=>$(el.dataset.close).close());
+$('discard').onclick=()=>{if(!confirm('放弃本页所有尚未应用的预览修改？'))return;draft=structuredClone(accepted);render();toast('已撤销本页修改，DSH 设置未改变。');};$('apply').onclick=()=>{if(!validateSize())return;accepted=structuredClone(draft);render();toast('已在原型中应用。已安装插件和 DSH 设置均未改变。');};
+$('read-local').onclick=async()=>{const button=$('read-local');if(!window.queryLocalFonts){$('picker-note').textContent='此浏览器不支持字体枚举。仍可选择候选或手动输入；缺失字体会回退。';return;}button.disabled=true;try{const fonts=await window.queryLocalFonts();localNames=[...new Set(fonts.map(f=>f.family))].sort((a,b)=>a.localeCompare(b));filter='local';$('picker-note').textContent='已读取 '+localNames.length+' 个本机字体。名称仅留在本页，不上传、不读取字体文件。';render();}catch(e){$('picker-note').textContent='未获得字体访问权限。你仍可以手动输入字体名称。';}finally{button.disabled=false;}};
+window.addEventListener('beforeunload',e=>{if(changed().length){e.preventDefault();e.returnValue='';}});
+render();if(location.hash==='#fonts')togglePicker(true);if(location.hash==='#dark'){document.body.classList.add('dark');$('theme-toggle').setAttribute('aria-pressed','true');}</script>
+</body></html>
