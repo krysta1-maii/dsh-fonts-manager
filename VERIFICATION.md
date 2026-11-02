@@ -8,7 +8,9 @@
 
 `npm test` 51/51 通过；`npm run build`、`npm run check` 成功；`npm run test:browser` 18/18 通过。浏览器检查仍使用隔离的模拟设置服务和复刻的宿主外框，没有连接实际 DSH，也没有修改用户字体。
 
-本地安装目录尚未更新：`~/.dsh-local-plugins/dsh-fonts-manager/index.js` 仍是 1.3.0 的宿主实现。需要按插件管理流程重新安装或更新宿主文件并重启 DSH 后，`font_manager` 才会从已连接 agent 的工具列表中消失；仅刷新页面只能更新浏览器半边。
+已安装到固定本地目录 `~/.dsh-local-plugins/dsh-fonts-manager`（2026-11-02）：`package.json`、`index.js`、`client.js`、`shared.js`、`cordis.patch.yml`、`icon.svg` 和 locale 文件与工作区逐字节一致，版本为 1.4.0；`client.js` 的 SHA-256 为 `8396a2c8c5cfb1295c8cbf7192c87ff423e4b5fa892000c9da04536a71dc3179`。安装前的 1.3.0 文件备份在开发副本的 `.release-backups/installed-before-1.4.0`。
+
+现有 Host 的 client bundle 监听已更新到 revision `29be6b55a6dc`，服务端返回的 bundle 包含安装后的产物（106,231 字节，`servedContainsInstalledArtifact: true`）。本次没有重启 DSH，也没有重载页面；按当前加载方式，`index.js` 的变更需要下一次 Host 重载才会替换进程内的旧插件注册，`font_manager` 是否已从当前工具列表消失未做进一步核验。
 
 以下为 1.4.0 之前的历史记录，其中 `font_manager` 的读写记录对应工具移除前的版本。
 
