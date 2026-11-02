@@ -20,7 +20,7 @@ const page = '<div class="fixture-banner">字体管理 ' + version + ' · 正式
   + '<div class="host-main"><div class="host-title-row"><h3 class="host-title">可视化字体管理</h3><span class="host-tag">v' + version + '</span></div>'
   + '<p class="host-name"><code>@local/dsh-fonts-manager</code></p><p class="host-desc">在本插件详情页预览、对比并设置正文、代码和终端字体，不改动内置字体设置界面。</p></div>'
   + '<div class="host-sections"><section class="host-section" data-plugin-config><div id="root"></div></section>'
-  + '<section class="host-section"><div class="host-section-head"><h4>组件</h4><span>2</span></div><ul class="host-rows">' + row('font_manager', 'index.js') + row('client', 'client.js') + '</ul></section>'
+  + '<section class="host-section"><div class="host-section-head"><h4>组件</h4><span>1</span></div><ul class="host-rows">' + row('client', 'client.js') + '</ul></section>'
   + '<div class="host-spacer"></div></div></div></main>';
 const html = '<!doctype html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>' + frame + '</style></head><body>' + page
   + '<script>' + bundle.outputFiles[0].text.replaceAll('</script', '<\\/script') + '</script><script>' + artifact.replaceAll('</script', '<\\/script') + '</script></body></html>';

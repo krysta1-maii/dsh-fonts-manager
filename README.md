@@ -2,7 +2,7 @@
 
 在 **DSH 0.2.1 系列（含预发布版）** 的「插件 → 可视化字体管理」详情页内提供字体设置和效果预览。保留内置「设置 → 通用 → 字体」界面、主题和其他设置不变；两处共享同一份内置字体配置。
 
-当前版本：**1.3.0**。
+当前版本：**1.4.0**。
 
 ## 使用
 
@@ -52,7 +52,7 @@ npm run test:browser
 
 界面只注册 `plugins.bundle.config`，key 为包名 `@local/dsh-fonts-manager`；直接嵌入本插件详情页的说明和组件列表之间。不增加侧栏页面，不覆盖任何既有字体设置 slot。详情页的标题、图标、导航和滚动由 DSH 插件管理器负责。Client 通过公开的 `ctx.configForms` 获取 `ui-theme` 快照，并通过原生 `mutate(ops, expectedRevision)` 提交六个字体字段的原子修改；不直接写 profile 文件、不覆盖主题 preference，也不对全局 DOM 注入预览样式。颜色使用 DSH 主题 tokens，页面文字和包元数据提供中英文。
 
-Agent 工具 `font_manager` 提供 `read`、`apply`、`reset`，与 UI 共享字体规范化和原生 Host 设置操作。先 read 获取 revision，再 apply/reset；写操作遵循 danger-full-access 权限门禁，不为其他工具放宽权限。`reset` 恢复继承值，空字体字符串则显式选择内置字体栈，两者语义不同。
+宿主半边只保留 Loader 入口（`index.js` 的 `apply` 为空实现），不注册 agent 工具，也不提供 Host 设置操作。1.4.0 移除了此前的 `font_manager` 工具；字体设置只通过插件详情页的界面修改。
 
 ## 接口依据
 
