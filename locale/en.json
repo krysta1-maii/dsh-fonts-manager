@@ -97,6 +97,7 @@
     "pvInlineBefore": "Before saving, check the fallback order in ",
     "pvInlineAfter": ". Missing glyphs will use the next available font.",
     "pvComposer": "Ask a follow-up, or use @ to reference a file…",
+    "pvQuoteChip": "Body and code fonts are set separately",
     "pvModel": "DeepSeek",
     "pvPermission": "Default permissions",
     "pvCodeIntro": "The three font roles affect body text, code and terminals independently. Here is an example:",

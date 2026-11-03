@@ -25,7 +25,7 @@
 .dfm-preview-note { margin: 0; color: var(--dfm-subtle); font-size: 12px; line-height: 18px; }
 .dfm-pv-scroll { height: clamp(420px, 56dvh, 600px); overflow: auto; overscroll-behavior: contain; }
 
-/* DSH 0.2.1-rc.2 scenes: font sizes/line heights come from sceneStyle, not the shell layout. */
+/* DSH 0.2.2-alpha.3 scenes: font sizes/line heights come from sceneStyle, not the shell layout. */
 .dfm-dsh-scene { min-width: 250px; background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary); font-family: var(--dfm-pv-font-text); font-size: var(--dfm-pv-body); line-height: var(--dfm-pv-bodyLeading); }
 .dfm-pv-icon { width: 16px; height: 16px; flex: none; display: inline-block; vertical-align: middle; }
 .dfm-pv-header { height: 44px; display: flex; align-items: center; gap: 9px; padding: 0 16px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
@@ -60,7 +60,12 @@
 .dfm-pv-message-actions { display: flex; gap: 14px; align-items: center; color: var(--dsw-alias-label-secondary); }
 .dfm-pv-message-actions .dfm-pv-icon { width: 14px; height: 14px; }
 .dfm-pv-composer { margin-top: 28px; border-radius: var(--dsw-radius-panel, 28px); padding: 8px 0 0; background: var(--dsw-specific-input-major, var(--dsw-alias-bg-layer-1)); box-shadow: var(--dsw-elevation-soft, 0 0 0 .5px var(--dsw-alias-border-l2)); }
-.dfm-pv-composer-draft { min-height: 36px; padding: 4px 8px 0 14px; color: var(--dsw-alias-label-secondary); font-size: var(--dfm-pv-body); line-height: var(--dfm-pv-bodyLeading); }
+.dfm-pv-composer-draft { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; min-height: 36px; padding: 4px 8px 0 14px; color: var(--dsw-alias-label-secondary); font-size: var(--dfm-pv-body); line-height: var(--dfm-pv-bodyLeading); }
+/* 0.2.2 message quote: the composer shows the quoted line before the draft text. */
+.dfm-pv-quote-chip { display: inline-flex; align-items: baseline; gap: 4px; max-width: min(80%, 300px); min-width: 0; color: var(--dsw-alias-state-business-primary); font-size: var(--dfm-pv-body); line-height: calc(var(--dfm-pv-body) + 6px); }
+.dfm-pv-quote-chip .dfm-pv-icon { width: 16px; height: 16px; align-self: center; }
+.dfm-pv-quote-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dfm-pv-composer-text { min-width: 0; overflow-wrap: anywhere; }
 .dfm-pv-composer-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 8px 6px; margin-top: 12px; font-size: 13px; line-height: 20px; }
 .dfm-pv-composer-left { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
 .dfm-pv-composer-left > .dfm-pv-icon:first-child { width: 20px; height: 20px; }

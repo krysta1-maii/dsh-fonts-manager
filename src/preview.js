@@ -10,7 +10,7 @@ export function previewFamily(role, family) {
   return normalized ? normalized + ', ' + fallback : fallback;
 }
 
-/** DSH 0.2.1-rc.2 metrics, checked against ui-theme and the rendered Markdown CSS. */
+/** DSH 0.2.2-alpha.3 metrics, checked against the ui-theme ladder and the rendered Markdown CSS. */
 export function previewMetrics(values) {
   const text = values.text.size;
   const code = values.code.size;
@@ -70,6 +70,7 @@ export function createSceneRenderer(React) {
     retry: 'M4 10a8 8 0 1 1 1 8M4 4v6h6',
     more: 'M4 12h1m6 0h1m6 0h1',
     panel: 'M3 4h18v16H3zM15 4v16',
+    quote: 'M7 7 4 12h3v5H2v-5l3-5zm9 0-3 5h3v5h-5v-5l3-5z',
   };
   function Icon({ name }) {
     return h('svg', { className: 'dfm-pv-icon', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }, h('path', { d: paths[name] || paths.more }));
@@ -82,7 +83,9 @@ export function createSceneRenderer(React) {
   }
   function Composer({ t }) {
     return h('div', { className: 'dfm-pv-composer', 'aria-label': t('pvInputHint') },
-      h('div', { className: 'dfm-pv-composer-draft' }, t('pvComposer')),
+      h('div', { className: 'dfm-pv-composer-draft' },
+        h('span', { className: 'dfm-pv-quote-chip' }, icon('quote'), h('span', { className: 'dfm-pv-quote-text' }, t('pvQuoteChip'))),
+        h('span', { className: 'dfm-pv-composer-text' }, t('pvComposer'))),
       h('div', { className: 'dfm-pv-composer-toolbar' }, h('span', { className: 'dfm-pv-composer-left' }, icon('plus'), h('span', null, t('pvModel')), icon('down'), h('span', { className: 'dfm-pv-permission' }, t('pvPermission'))), h('span', { className: 'dfm-pv-send', 'aria-hidden': true }, icon('send'))));
   }
   function MessageActions({ t }) {

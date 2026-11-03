@@ -97,6 +97,7 @@
     "pvInlineBefore": "保存前可以检查 ",
     "pvInlineAfter": " 中的回退顺序，缺少字形时会使用后续字体。",
     "pvComposer": "继续提问，或用 @ 引用文件…",
+    "pvQuoteChip": "正文与代码的字体会分开设置",
     "pvModel": "DeepSeek",
     "pvPermission": "默认权限",
     "pvCodeIntro": "配置中的三种字体分别作用于正文、代码和终端。下面是一段示例：",

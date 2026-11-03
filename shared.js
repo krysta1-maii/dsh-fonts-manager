@@ -1,4 +1,4 @@
-/** Font-only settings operations for DSH 0.2.1-rc.2. No runtime services or DOM. */
+/** Font-only settings operations for DSH 0.2.1 and 0.2.2. No runtime services or DOM. */
 export const ROLES = Object.freeze(['text', 'code', 'terminal']);
 export const ROLE_SPECS = Object.freeze({
   text: Object.freeze({ familyField: 'textFontFamily', sizeField: 'fontSize', min: 10, max: 22, defaultSize: 14 }),

@@ -1,6 +1,14 @@
 # 验证记录
 
-目标环境：**DSH 0.2.1-rc.2**；现有 GUI：<http://127.0.0.1:43127>。官方版本锁 commit：`687f282e8625c6b8d11ff58211a90524be2e4317`。
+目标环境：**DSH 0.2.2-alpha.3（源码核对）**；本机安装的 Host 为 0.2.1-rc.5，GUI：<http://127.0.0.1:43127>。目标版本 commit：`05b1cae8db6e674c5685101494d4eec24652424a`。以下历史记录保留各自当时的目标版本与 commit。
+
+## 1.5.0 支持 0.2.2 与界面跟随（2026-11-03）
+
+按 0.2.2-alpha.3 官方 tag 的源码逐项核对后，`engines.dsh` 从 `>=0.2.1-0 <0.2.2-0` 扩为 `>=0.2.1-0 <0.2.3-0`。运行时代码没有修改：`dsh.client` 的 `platform`/`immediately`/`inject`、`exports["./client"]` 的预构建工厂、`window.__ModuleLoader__.load({ id, factory })` 注册、`plugins.bundle.config` 的 keyed root 契约与 `renderSlot(..., { view: "page" }, { entryKey })` 调用、`configForms.get/whileServed/getSnapshot/subscribe/mutate`、`ui-theme` 命名空间与六个字体字段、三组字号范围与默认值、字体规范化、locale 单语言注册与 `bind`、设置 path op 形状、页面使用的主题 token，在目标版本都保持原样。
+
+同步完成四项外围调整。`locale/` 新增 ja、es、fr、de、ru、pt 六份卡片元数据，页面内文案仍为中英文，其他语言按回退链显示英文。预览场景在输入区加入 0.2.2 的引用条；排版阶梯按 `--dsh-content-font-delta` 核对后数值未变。浏览器夹具换用 0.2.2 的详情页外框：滚动容器由 `.page` 移到 `.pageBody`，夹具拆成 `host-shell` 与 `host-page` 两层，`#host-page` 仍是滚动元素。发布脚本的固定文件表补入新增语言文件；`engines` 变化不在浏览器热更范围内，安装该版本需要移除并重新安装目录。
+
+本轮执行 `npm run build`（client.js 107,189 字节）、`npm run check`、`npm test`（51/51）与 `npm run test:browser`（18/18）。浏览器回归使用隔离的模拟设置服务和复刻的 0.2.2 外框，未连接真实 DSH，未写入用户字体。真实 0.2.2-alpha.3 宿主的安装、页面渲染与字体写入验收未执行；本机安装的 Host 仍为 0.2.1-rc.5，GUI 未重载。
 
 ## 1.4.0 移除 agent 工具（2026-11-02）
 

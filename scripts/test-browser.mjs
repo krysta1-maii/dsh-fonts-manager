@@ -14,14 +14,14 @@ const artifact = await readFile(join(root, 'client.js'), 'utf8');
 const frame = await readFile(join(root, 'test/host-frame.css'), 'utf8');
 const { version } = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 const row = (id, module) => '<li class="host-row"><span class="host-row-icon"></span><span class="host-row-main"><span class="host-row-id">' + id + '</span><span class="host-row-module">' + module + '</span></span></li>';
-const page = '<div class="fixture-banner">字体管理 ' + version + ' · 正式 React 组件回归夹具 · DSH 0.2.1 主题与插件详情页外框 · 模拟设置服务，不连接 DSH</div>'
-  + '<main class="host-page" id="host-page"><div class="host-detail"><div class="host-top"><span class="host-back">‹ 插件</span></div>'
+const page = '<div class="fixture-banner">字体管理 ' + version + ' · 正式 React 组件回归夹具 · DSH 0.2.2 主题与插件详情页外框 · 模拟设置服务，不连接 DSH</div>'
+  + '<main class="host-shell"><div class="host-page" id="host-page"><div class="host-detail"><div class="host-top"><span class="host-back">‹ 插件</span></div>'
   + '<div class="host-head"><span class="host-icon">Aa</span><span class="host-switch"></span></div>'
   + '<div class="host-main"><div class="host-title-row"><h3 class="host-title">可视化字体管理</h3><span class="host-tag">v' + version + '</span></div>'
   + '<p class="host-name"><code>@local/dsh-fonts-manager</code></p><p class="host-desc">在本插件详情页预览、对比并设置正文、代码和终端字体，不改动内置字体设置界面。</p></div>'
   + '<div class="host-sections"><section class="host-section" data-plugin-config><div id="root"></div></section>'
   + '<section class="host-section"><div class="host-section-head"><h4>组件</h4><span>1</span></div><ul class="host-rows">' + row('client', 'client.js') + '</ul></section>'
-  + '<div class="host-spacer"></div></div></div></main>';
+  + '<div class="host-spacer"></div></div></div></div></main>';
 const html = '<!doctype html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>' + frame + '</style></head><body>' + page
   + '<script>' + bundle.outputFiles[0].text.replaceAll('</script', '<\\/script') + '</script><script>' + artifact.replaceAll('</script', '<\\/script') + '</script></body></html>';
 const fixturePath = join(out, 'regression.html'); await writeFile(fixturePath, html);
@@ -201,6 +201,6 @@ await withBrowser(async b => {
   assert.equal(await b.evaluate(host + '.scrollTop'), 0);
   ok('host entry scroll resets to top before the loading placeholder expands');
   assert.equal(b.errors.length, 0, JSON.stringify(b.errors)); assert.equal(b.requests.filter(x => /^https?:/.test(x)).length, 0); ok('no browser errors or network/DSH requests; light/dark/picker/sticky/mobile screenshots rendered');
-  await writeFile(join(out, 'verification.json'), JSON.stringify({ checks, browserErrors: b.errors, networkRequests: b.requests, note: 'Real React and actual generated plugin artifact inside a DSH 0.2.1 token and detail-page frame. Mock settings service only; not an authenticated DSH page.' }, null, 2));
+  await writeFile(join(out, 'verification.json'), JSON.stringify({ checks, browserErrors: b.errors, networkRequests: b.requests, note: 'Real React and actual generated plugin artifact inside a DSH 0.2.2-alpha.3 token and detail-page frame. Mock settings service only; not an authenticated DSH page.' }, null, 2));
 });
 console.log('Browser regression passed:', checks.length, 'checks');

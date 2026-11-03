@@ -1,8 +1,8 @@
 # 可视化字体管理 / Visual Font Manager
 
-在 **DSH 0.2.1 系列（含预发布版）** 的「插件 → 可视化字体管理」详情页内提供字体设置和效果预览。保留内置「设置 → 通用 → 字体」界面、主题和其他设置不变；两处共享同一份内置字体配置。
+在 **DSH 0.2.1 与 0.2.2 系列（含预发布版）** 的「插件 → 可视化字体管理」详情页内提供字体设置和效果预览。保留内置「设置 → 通用 → 字体」界面、主题和其他设置不变；两处共享同一份内置字体配置。
 
-当前版本：**1.4.0**。
+当前版本：**1.5.0**。
 
 ## 使用
 
@@ -26,9 +26,9 @@
 
 预览工具栏提供「对比 / 仅修改后」、100% / 150% 缩放和「示例文字」。并排对比将「当前已应用」与「修改后」放在相同宽度中，保留两侧真实的三类字体和字号。两侧按相对位置同步滚动，切换用途后回到顶部。窄窗口上下排列，修改后的预览在前，不缩小字体。100% 为实际字号；150% 只放大预览，不改变实际应用的字号。「示例文字」对话框可替换当前场景的正文、代码或终端输出，并查看易混字符与规范化字体栈。
 
-对话预览包含用户消息气泡、助手 Markdown 标题/段落/列表/表格/行内代码，以及带模型栏的输入区；代码场景包含代码块、Bash 调用行和工具输出；终端场景包含标签栏与命令输出。正文、代码、终端分别使用各自设置，固定字号的界面栏不会被代码字号错误放大。
+对话预览包含用户消息气泡、助手 Markdown 标题/段落/列表/表格/行内代码，以及带模型栏和引用条的输入区；代码场景包含代码块、Bash 调用行和工具输出；终端场景包含标签栏与命令输出。正文、代码、终端分别使用各自设置，固定字号的界面栏不会被代码字号错误放大。
 
-这些都是本插件内的只读示例，不读取真实会话，不发送消息，不运行命令。排版比例依据 DSH 0.2.1-rc.2 发布产物，颜色跟随当前主题；代码样本使用中性文字与注释色，不载入完整 Shiki。终端不是 xterm 实例，使用浏览器自然行框近似显示，真实终端的测量格宽、格高、宽字符与光标渲染仍可能不同。
+这些都是本插件内的只读示例，不读取真实会话，不发送消息，不运行命令。排版比例按 DSH 0.2.2-alpha.3 的 ui-theme 阶梯与 Markdown 样式核对，颜色跟随当前主题；代码样本使用中性文字与注释色，不载入完整 Shiki。终端不是 xterm 实例，使用浏览器自然行框近似显示，真实终端的测量格宽、格高、宽字符与光标渲染仍可能不同。
 
 ## 构建与安装
 
@@ -46,20 +46,20 @@ npm install --prefix .ui-test --no-save --package-lock=false --ignore-scripts re
 npm run test:browser
 ~~~
 
-当前安装目录为 `~/.dsh-local-plugins/dsh-fonts-manager`，开发副本另行保留。通过 DSH 的插件管理安装这个目录；本地安装会保留路径引用，不要移动或删除正在使用的安装目录。发布用包包含预构建浏览器产物，可先执行 `npm pack --dry-run` 核对分发文件。按用户要求，`engines.dsh` 为 `>=0.2.1-0 <0.2.2-0`，覆盖 0.2.1 的预发布版与正式版，不包含 0.2.2。实现基线仍是 rc.2；rc.3 已完成源码差异和目标注册接口的隔离检查，未完成整套 rc.3 浏览器验收，范围内其他版本未逐一验证。仅浏览器实现更新且 Host/依赖声明不变时，构建后发布到固定安装目录，由现有 Host 的 client bundle 监听更新 revision；插件卡片版本信息可通过“刷新”或整页刷新重新读取，无需移除并重装。
+当前安装目录为 `~/.dsh-local-plugins/dsh-fonts-manager`，开发副本另行保留。通过 DSH 的插件管理安装这个目录；本地安装会保留路径引用，不要移动或删除正在使用的安装目录。发布用包包含预构建浏览器产物，可先执行 `npm pack --dry-run` 核对分发文件。`engines.dsh` 为 `>=0.2.1-0 <0.2.3-0`，覆盖 0.2.1 与 0.2.2 的预发布版和正式版。1.5.0 的接口按 0.2.2-alpha.3 源码逐项核对，浏览器回归已换用该版本的详情页外框；真实 0.2.2 宿主的安装与点击验收尚未执行。清单中的 `engines` 变更不属于浏览器产物热更范围，发布时需通过插件管理器移除并重新安装这个目录。仅浏览器实现更新且 Host/依赖声明不变时，才可构建后直接发布到固定安装目录，由现有 Host 的 client bundle 监听更新 revision；插件卡片版本信息可通过“刷新”或整页刷新重新读取。
 
 ## 实现与安全边界
 
-界面只注册 `plugins.bundle.config`，key 为包名 `@local/dsh-fonts-manager`；直接嵌入本插件详情页的说明和组件列表之间。不增加侧栏页面，不覆盖任何既有字体设置 slot。详情页的标题、图标、导航和滚动由 DSH 插件管理器负责。Client 通过公开的 `ctx.configForms` 获取 `ui-theme` 快照，并通过原生 `mutate(ops, expectedRevision)` 提交六个字体字段的原子修改；不直接写 profile 文件、不覆盖主题 preference，也不对全局 DOM 注入预览样式。颜色使用 DSH 主题 tokens，页面文字和包元数据提供中英文。
+界面只注册 `plugins.bundle.config`，key 为包名 `@local/dsh-fonts-manager`；直接嵌入本插件详情页的说明和组件列表之间。不增加侧栏页面，不覆盖任何既有字体设置 slot。详情页的标题、图标、导航和滚动由 DSH 插件管理器负责。Client 通过公开的 `ctx.configForms` 获取 `ui-theme` 快照，并通过原生 `mutate(ops, expectedRevision)` 提交六个字体字段的原子修改；不直接写 profile 文件、不覆盖主题 preference，也不对全局 DOM 注入预览样式。颜色使用 DSH 主题 tokens；页面文字提供中英文，插件卡片元数据覆盖 DSH 内置的八种语言。
 
 宿主半边只保留 Loader 入口（`index.js` 的 `apply` 为空实现），不注册 agent 工具，也不提供 Host 设置操作。1.4.0 移除了此前的 `font_manager` 工具；字体设置只通过插件详情页的界面修改。
 
 ## 接口依据
 
-目标版本：`0.2.1-rc.2`，官方 tag `dsh-v0.2.1-rc.2`，skill 锁定 commit `687f282e8625c6b8d11ff58211a90524be2e4317`。实现使用当前安装包和实时 Cordis Inspect 核验；未修改 DSH 安装目录。
+目标版本：`0.2.2-alpha.3`，官方 tag `dsh-v0.2.2-alpha.3`，commit `05b1cae8db6e674c5685101494d4eec24652424a`。1.5.0 在该版本源码上核对清单字段、`plugins.bundle.config` 插槽、`configForms`、`ui-theme` 字体字段与规范化、locale 契约和主题 token；本轮未安装该版本，未在真实 0.2.2 宿主中点击验收。
 
-- 内置字体字段、取值范围和规范化：[ui-theme](<https://github.com/deepseek-ai/deepseek-harness/tree/687f282e8625c6b8d11ff58211a90524be2e4317/packages/client/ui-theme>)。
-- 原子更新、共享表单与冲突恢复：[ui-settings](<https://github.com/deepseek-ai/deepseek-harness/tree/687f282e8625c6b8d11ff58211a90524be2e4317/packages/client/ui-settings>)。
-- 插件详情页配置插槽由运行中的 `Slots.listSubTree` 核验；原生调用是 `renderSlot("plugins.bundle.config", { view: "page" }, { entryKey: pkg.name })`。
+- 内置字体字段、取值范围和规范化：[ui-theme](<https://github.com/deepseek-ai/deepseek-harness/tree/05b1cae8db6e674c5685101494d4eec24652424a/packages/client/ui-theme>)。
+- 原子更新、共享表单与冲突恢复：[ui-settings](<https://github.com/deepseek-ai/deepseek-harness/tree/05b1cae8db6e674c5685101494d4eec24652424a/packages/client/ui-settings>)。
+- 插件详情页配置插槽：原生调用是 `renderSlot("plugins.bundle.config", { view: "page" }, { entryKey: pkg.name })`，见 [PluginManagerPage](<https://github.com/deepseek-ai/deepseek-harness/blob/05b1cae8db6e674c5685101494d4eec24652424a/packages/client/ui-plugin-manager/src/client/PluginManagerPage.tsx#L798>)。
 
 测试覆盖与实际安装核验记录见 [验证记录](<VERIFICATION.md>)。字体图标为原创 SVG；不包含字体文件。字体规范化算法沿用 MIT 许可的 DSH 实现。

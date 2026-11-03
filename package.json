@@ -1,13 +1,13 @@
 {
   "name": "@local/dsh-fonts-manager",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "type": "module",
   "description": "在插件详情页预览、对比并管理 DSH 正文、代码与终端字体。",
   "license": "MIT",
   "engines": {
     "node": ">=22",
-    "dsh": ">=0.2.1-0 <0.2.2-0"
+    "dsh": ">=0.2.1-0 <0.2.3-0"
   },
   "exports": {
     ".": "./index.js",

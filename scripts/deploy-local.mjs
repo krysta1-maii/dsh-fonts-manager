@@ -4,7 +4,8 @@ import { createHash, randomUUID } from 'node:crypto';
 const sourceRoot = await realpath(resolve(import.meta.dirname, '..'));
 const targetRoot = await realpath('/home/andyk/.dsh-local-plugins/dsh-fonts-manager');
 if (sourceRoot !== '/home/andyk/projects-dsh/dsh-fonts-manager' || targetRoot !== '/home/andyk/.dsh-local-plugins/dsh-fonts-manager') throw new Error('Unexpected source or installation root');
-const files = ['package.json', 'locale/zh.json', 'locale/en.json', 'src/client.js', 'src/styles.css', 'src/preview.css',
+const files = ['package.json', 'locale/zh.json', 'locale/en.json', 'locale/ja.json', 'locale/es.json', 'locale/fr.json',
+  'locale/de.json', 'locale/ru.json', 'locale/pt.json', 'src/client.js', 'src/styles.css', 'src/preview.css',
   'test/preview.test.js', 'test/sections.test.js', 'test/redesign.test.js', 'test/browser-entry.jsx',
   'scripts/browser-driver.mjs', 'scripts/test-browser.mjs', 'README.md', 'VERIFICATION.md', '.gitignore', 'client.js'];
 const hash = data => createHash('sha256').update(data).digest('hex');

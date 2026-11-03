@@ -1,4 +1,4 @@
-/* Plugin-local layout. Colors, radii and elevation inherit the DSH 0.2.1 theme layer; fallbacks cover partial third-party themes. */
+/* Plugin-local layout. Colors, radii and elevation inherit the DSH 0.2.x theme layer; fallbacks cover partial third-party themes. */
 .dfm-page {
   --dfm-muted: var(--dsw-alias-label-secondary);
   --dfm-subtle: var(--dsw-alias-label-tertiary, var(--dsw-alias-label-secondary));

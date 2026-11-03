@@ -1,5 +1,5 @@
-/* Browser regression only. Resolved DSH 0.2.1 ui-theme values (base, design-platform, focus,
-   elevation) and the ui-plugin-manager detail page frame; not shipped with the plugin. */
+/* Browser regression only. Resolved DSH 0.2.2-alpha.3 ui-theme values (base, design-platform,
+   focus, elevation) and the ui-plugin-manager detail page frame; not shipped with the plugin. */
 :root {
   --dsw-radius-xs: 4px; --dsw-radius-sm: 8px; --dsw-radius-md: 12px; --dsw-radius-lg: 16px; --dsw-radius-xl: 20px; --dsw-radius-panel: 28px;
   --dsw-focus-ring-width: 2px;
@@ -47,10 +47,19 @@ body[data-ds-dark-theme] {
   box-sizing: border-box; height: 32px; padding: 0 24px; display: flex; align-items: center;
   border-bottom: .5px solid var(--dsw-alias-border-l2); color: var(--dsw-alias-label-tertiary); font-size: 11px; white-space: nowrap; overflow: hidden;
 }
-/* ui-plugin-manager .page / .detail* rules, renamed. */
+/* ui-plugin-manager .page / .pageBody / .detail* rules, renamed. 0.2.2 keeps the
+   centred frame in .page and scrolls the column inside .pageBody, which spans the
+   frame's inline padding through negative margins. */
+.host-shell {
+  --host-inset: clamp(24px, 4vw, 48px);
+  box-sizing: border-box; height: calc(100vh - 32px); display: flex; flex-direction: column;
+  padding: 0 var(--host-inset);
+}
 .host-page {
-  box-sizing: border-box; height: calc(100vh - 32px); display: flex; flex-direction: column; align-items: center; gap: 32px;
-  padding: 0 clamp(24px, 4vw, 48px) 48px; overflow: auto;
+  box-sizing: border-box; flex: 1; min-height: 0;
+  width: calc(100% + 2 * var(--host-inset)); margin-inline: calc(-1 * var(--host-inset));
+  display: flex; flex-direction: column; align-items: center; gap: 32px;
+  padding: 0 var(--host-inset) 48px; overflow-x: hidden; overflow-y: auto;
 }
 .host-page > * { width: 100%; max-width: 960px; }
 .host-detail { display: flex; flex-direction: column; }

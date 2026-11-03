@@ -18,14 +18,14 @@ test('distribution has a matching lazy factory and no client package imports', (
 test('runtime exports and localized display resources exist', () => {
   const manifest = JSON.parse(read('package.json'));
   for (const name of ['.', './client', './icon']) assert.ok(existsSync(new URL('../' + manifest.exports[name], import.meta.url)));
-  for (const lang of ['zh', 'en']) {
+  for (const lang of ['zh', 'en', 'ja', 'es', 'fr', 'de', 'ru', 'pt']) {
     const dictionary = JSON.parse(read('locale/' + lang + '.json'));
     assert.ok(dictionary.meta.title.length > 0);
     assert.ok(dictionary.meta.description.length > 0);
   }
   assert.ok(statSync(new URL('../icon.svg', import.meta.url)).size < 256 * 1024);
   assert.ok(read('icon.svg').startsWith('<svg xmlns="http://www.w3.org/2000/svg"'));
-  assert.equal(manifest.engines.dsh, '>=0.2.1-0 <0.2.2-0');
+  assert.equal(manifest.engines.dsh, '>=0.2.1-0 <0.2.3-0');
   assert.equal(manifest.dependencies, undefined);
   assert.equal(manifest.scripts.postinstall, undefined);
 });
