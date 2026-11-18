@@ -46,7 +46,7 @@ npm install --prefix .ui-test --no-save --package-lock=false --ignore-scripts re
 npm run test:browser
 ~~~
 
-当前安装目录为 `~/.dsh-local-plugins/dsh-fonts-manager`，开发副本另行保留。通过 DSH 的插件管理安装这个目录；本地安装会保留路径引用，不要移动或删除正在使用的安装目录。发布用包包含预构建浏览器产物，可先执行 `npm pack --dry-run` 核对分发文件。`engines.dsh` 为 `>=0.2.1-0 <0.2.3-0`，覆盖 0.2.1 与 0.2.2 的预发布版和正式版。1.5.0 的接口按 0.2.2-alpha.3 源码逐项核对，浏览器回归已换用该版本的详情页外框；真实 0.2.2 宿主的安装与点击验收尚未执行。清单中的 `engines` 变更不属于浏览器产物热更范围，发布时需通过插件管理器移除并重新安装这个目录。仅浏览器实现更新且 Host/依赖声明不变时，才可构建后直接发布到固定安装目录，由现有 Host 的 client bundle 监听更新 revision；插件卡片版本信息可通过“刷新”或整页刷新重新读取。
+当前安装目录为 `~/.dsh-local-plugins/dsh-fonts-manager`，开发副本另行保留。通过 DSH 的插件管理安装这个目录；本地安装会保留路径引用，不要移动或删除正在使用的安装目录。发布用包包含预构建浏览器产物，可先执行 `npm pack --dry-run` 核对分发文件。`engines.dsh` 为 `>=0.2.1-0 <0.2.3-0`，覆盖 0.2.1 与 0.2.2 的预发布版和正式版。1.5.0 的接口按 0.2.2-alpha.3 源码逐项核对，浏览器回归已换用该版本的详情页外框；已在本机 0.2.2-alpha.3 宿主完成安装与组合核验，页面点击验收尚未执行。清单中的 `engines` 变更不在浏览器产物的文件热更范围内：宿主只在该包的 Loader 条目重启时重读清单，升级后需在插件管理器停用再启用该组合包（或移除后重装），由重新组合拾取新的 `engines`。仅浏览器实现更新且 Host/依赖声明不变时，才可构建后直接发布到固定安装目录，由现有 Host 的 client bundle 监听更新 revision；插件卡片版本信息可通过“刷新”或整页刷新重新读取。
 
 ## 实现与安全边界
 
@@ -56,7 +56,7 @@ npm run test:browser
 
 ## 接口依据
 
-目标版本：`0.2.2-alpha.3`，官方 tag `dsh-v0.2.2-alpha.3`，commit `05b1cae8db6e674c5685101494d4eec24652424a`。1.5.0 在该版本源码上核对清单字段、`plugins.bundle.config` 插槽、`configForms`、`ui-theme` 字体字段与规范化、locale 契约和主题 token；本轮未安装该版本，未在真实 0.2.2 宿主中点击验收。
+目标版本：`0.2.2-alpha.3`，官方 tag `dsh-v0.2.2-alpha.3`，commit `05b1cae8db6e674c5685101494d4eec24652424a`。1.5.0 在该版本源码上核对清单字段、`plugins.bundle.config` 插槽、`configForms`、`ui-theme` 字体字段与规范化、locale 契约和主题 token；其后已在本机 0.2.2-alpha.3 宿主安装，真实宿主页面中的点击验收仍未执行。
 
 - 内置字体字段、取值范围和规范化：[ui-theme](<https://github.com/deepseek-ai/deepseek-harness/tree/05b1cae8db6e674c5685101494d4eec24652424a/packages/client/ui-theme>)。
 - 原子更新、共享表单与冲突恢复：[ui-settings](<https://github.com/deepseek-ai/deepseek-harness/tree/05b1cae8db6e674c5685101494d4eec24652424a/packages/client/ui-settings>)。

@@ -1,14 +1,18 @@
 # 验证记录
 
-目标环境：**DSH 0.2.2-alpha.3（源码核对）**；本机安装的 Host 为 0.2.1-rc.5，GUI：<http://127.0.0.1:43127>。目标版本 commit：`05b1cae8db6e674c5685101494d4eec24652424a`。以下历史记录保留各自当时的目标版本与 commit。
+目标环境：**DSH 0.2.2-alpha.3**；本机安装的 Host 已是 0.2.2-alpha.3（`/plugins/events` 报告 release `0.2.2-alpha.3 / 43a1ef1`），GUI：<http://127.0.0.1:43127>。源码核对的目标 tag 为 `05b1cae8db6e674c5685101494d4eec24652424a`。以下历史记录保留各自当时的目标版本与 commit。
 
 ## 1.5.0 支持 0.2.2 与界面跟随（2026-11-03）
 
 按 0.2.2-alpha.3 官方 tag 的源码逐项核对后，`engines.dsh` 从 `>=0.2.1-0 <0.2.2-0` 扩为 `>=0.2.1-0 <0.2.3-0`。运行时代码没有修改：`dsh.client` 的 `platform`/`immediately`/`inject`、`exports["./client"]` 的预构建工厂、`window.__ModuleLoader__.load({ id, factory })` 注册、`plugins.bundle.config` 的 keyed root 契约与 `renderSlot(..., { view: "page" }, { entryKey })` 调用、`configForms.get/whileServed/getSnapshot/subscribe/mutate`、`ui-theme` 命名空间与六个字体字段、三组字号范围与默认值、字体规范化、locale 单语言注册与 `bind`、设置 path op 形状、页面使用的主题 token，在目标版本都保持原样。
 
-同步完成四项外围调整。`locale/` 新增 ja、es、fr、de、ru、pt 六份卡片元数据，页面内文案仍为中英文，其他语言按回退链显示英文。预览场景在输入区加入 0.2.2 的引用条；排版阶梯按 `--dsh-content-font-delta` 核对后数值未变。浏览器夹具换用 0.2.2 的详情页外框：滚动容器由 `.page` 移到 `.pageBody`，夹具拆成 `host-shell` 与 `host-page` 两层，`#host-page` 仍是滚动元素。发布脚本的固定文件表补入新增语言文件；`engines` 变化不在浏览器热更范围内，安装该版本需要移除并重新安装目录。
+同步完成四项外围调整。`locale/` 新增 ja、es、fr、de、ru、pt 六份卡片元数据，页面内文案仍为中英文，其他语言按回退链显示英文。预览场景在输入区加入 0.2.2 的引用条；排版阶梯按 `--dsh-content-font-delta` 核对后数值未变。浏览器夹具换用 0.2.2 的详情页外框：滚动容器由 `.page` 移到 `.pageBody`，夹具拆成 `host-shell` 与 `host-page` 两层，`#host-page` 仍是滚动元素。发布脚本的固定文件表补入新增语言文件；`engines` 变化不在浏览器热更范围内，需要让宿主重新读取清单（停用再启用该组合包，或移除后重装）。
 
-本轮执行 `npm run build`（client.js 107,189 字节）、`npm run check`、`npm test`（51/51）与 `npm run test:browser`（18/18）。浏览器回归使用隔离的模拟设置服务和复刻的 0.2.2 外框，未连接真实 DSH，未写入用户字体。真实 0.2.2-alpha.3 宿主的安装、页面渲染与字体写入验收未执行；本机安装的 Host 仍为 0.2.1-rc.5，GUI 未重载。
+本轮执行 `npm run build`（client.js 107,189 字节）、`npm run check`、`npm test`（51/51）与 `npm run test:browser`（18/18）。浏览器回归使用隔离的模拟设置服务和复刻的 0.2.2 外框，未连接真实 DSH，未写入用户字体。
+
+2026-11-03 已在本机 0.2.2-alpha.3 宿主完成安装。升级到该宿主后，1.4.0 因 `engines.dsh` 不覆盖 0.2.2 在组合阶段被跳过，插件在 GUI 中消失。把工作区的 1.5.0 文件同步到固定安装目录 `~/.dsh-local-plugins/dsh-fonts-manager`，安装目录与工作区的文件清单、逐文件 SHA-256 一致（26 个文件）。随后在插件管理器停用再启用该组合包，宿主重新读取清单并重新组合，`include:dsh-fonts-manager` 由缺失变为 active，patch id 为 `dsh-fonts-manager`。服务端 `/plugins/??@local/dsh-fonts-manager/client.js&rev=4731e9aeeb7d` 返回 107,270 字节，包含安装副本的 107,189 字节产物，SHA-256 为 `6bfabd8a082df1ee030f53b0cfd1bf505b7cdabb199167ece19b58d98b0d1e45`，与 `npm run build` 的输出一致。安装前的 1.4.0 目录备份在 `.release-backups/installed-before-1.5.0`；profile 的依赖 spec、bundles 顺序与字体设置未因安装改变。
+
+已打开的页面在本轮结束时尚未出现本插件的 `plugins.bundle.config` 键。客户端模块只接受与页面启动 release 相同的图（`dsh-client-modules` 的条目所有权一节），本轮宿主机是在页面打开之后升级的，因此需要刷新页面才能应用新图。刷新后的详情页渲染、点击与字体写入验收本轮未执行。
 
 ## 1.4.0 移除 agent 工具（2026-11-02）
 
